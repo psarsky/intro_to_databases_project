@@ -1,11 +1,13 @@
 # Funkcje systemu
 System umożliwia zarządzanie webinarami, kursami oraz studiami. Do jego najważniejszych funkcji należą:
 ## 1. Organizacja zajęć
--   Wprowadzanie/usuwanie zajęć/webinarów - **nauczyciel** (tylko webinary, które prowadzi), **koordynator kursu** (tylko w ramach kursu, który koordynuje), **koordynator przedmiotu** (tylko w ramach przedmiotu, który koordynuje), **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
--   Wprowadzanie/usuwanie kursów - **koordynator kursu** (tylko kursy, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
--   Wprowadzanie/usuwanie programów studiów - **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
+-   Wprowadzanie/modyfikacja zajęć/webinarów - **nauczyciel** (tylko webinary, które prowadzi), **koordynator kursu** (tylko w ramach kursu, który koordynuje), **koordynator przedmiotu** (tylko w ramach przedmiotu, który koordynuje), **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
+-   Wprowadzanie/modyfikacja kursów - **koordynator kursu** (tylko kursy, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
+-   Wprowadzanie/modyfikacja programów studiów - **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
 -   Dodawanie tłumaczy do wydarzeń - **nauczyciel** (tylko webinary, które prowadzi), **koordynator kursu** (tylko w ramach kursu, który koordynuje), **koordynator przedmiotu** (tylko w ramach przedmiotu, który koordynuje), **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
 ## 2. Zarządzanie uczestnikami i frekwencją
+-   Rejestracja konta na platformie - **użytkownik niezalogowany**
+-   Zatwierdzenie konta użytkownika - **administrator**, **dyrektor**
 -   Rejestracja na webinary (płatne i bezpłatne), kursy, studia, oraz pojedyncze spotkania studyjne - **użytkownik/student**
 -   Generowanie harmonogramu zajęć/wydarzeń - **użytkownik/student** (tylko tych, na które jest zapisany), **tłumacz** (tylko tych, do których jest przypisany), **nauczyciel** (tylko tych, które prowadzi), **koordynator kursu** (tylko w ramach kursu, który koordynuje), **koordynator przedmiotu** (tylko w ramach przedmiotu, który koordynuje), **koordynator studiów** (tylko w ramach studiów, które koordynuje), **administrator** (wszystko), **dyrektor szkoły** (wszystko)
 -   Tworzenie list obecności zawierających daty, imiona, nazwiska oraz status uczestników - **nauczyciel** (tylko dla wydarzeń, które prowadzi)
