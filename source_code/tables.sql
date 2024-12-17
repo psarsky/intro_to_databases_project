@@ -331,45 +331,51 @@ CREATE TABLE Reservations
 -- Table: Orders
 CREATE TABLE Orders
 (
-    OrderID     int      NOT NULL IDENTITY,
-    UserID      int      NOT NULL,
-    OrderDate   datetime NOT NULL,
-    PaymentDate datetime NULL,
+    OrderID    int           NOT NULL IDENTITY,
+    UserID     int           NOT NULL,
+    OrderDate  datetime      NOT NULL,
+    PaymentURL nvarchar(max) NOT NULL,
     CONSTRAINT Orders_pk PRIMARY KEY (OrderID)
 );
 
 -- Table: WebinarOrders
 CREATE TABLE WebinarOrders
 (
-    WebinarID int   NOT NULL,
-    Price     money NOT NULL,
-    OrderID   int   NOT NULL,
+    WebinarID   int      NOT NULL,
+    OrderID     int      NOT NULL,
+    Price       money    NOT NULL,
+    PaymentDate datetime NULL,
     CONSTRAINT WebinarOrders_pk PRIMARY KEY (WebinarID)
 );
 
 -- Table: CourseOrders
 CREATE TABLE CourseOrders
 (
-    OrderID  int   NOT NULL,
-    CourseID int   NOT NULL,
-    Price    money NOT NULL,
+    OrderID              int      NOT NULL,
+    CourseID             int      NOT NULL,
+    PaymentInAdvance     money    NOT NULL,
+    FullPrice            money    NOT NULL,
+    PaymentDateInAdvance datetime NULL,
+    PaymentDateFull      datetime NULL,
     CONSTRAINT CourseOrders_pk PRIMARY KEY (OrderID, CourseID)
 );
 
 -- Table: StudyOrders
 CREATE TABLE StudyOrders
 (
-    OrderID int   NOT NULL,
-    StudyID int   NOT NULL,
-    Price   money NOT NULL,
+    OrderID     int      NOT NULL,
+    StudyID     int      NOT NULL,
+    Price       money    NOT NULL,
+    PaymentDate datetime NULL,
     CONSTRAINT StudyOrders_pk PRIMARY KEY (OrderID, StudyID)
 );
 
 -- Table: StudyMeetingOrders
 CREATE TABLE StudyMeetingOrders
 (
-    OrderID   int   NOT NULL,
-    MeetingID int   NOT NULL,
-    Price     money NOT NULL,
+    OrderID     int      NOT NULL,
+    MeetingID   int      NOT NULL,
+    Price       money    NOT NULL,
+    PaymentDate datetime NULL,
     CONSTRAINT StudyMeetingOrders_pk PRIMARY KEY (OrderID, MeetingID)
 );
