@@ -8,7 +8,7 @@ CREATE TABLE Users
     Password     nvarchar(64) NOT NULL,
     FirstName    nvarchar(30) NOT NULL,
     LastName     nvarchar(30) NOT NULL,
-    Address      nvarchar(30) NOT NULL,
+    Address      nvarchar(64) NOT NULL,
     PostalCode   nvarchar(6)  NOT NULL,
     City         nvarchar(50) NOT NULL,
     Country      nvarchar(20) NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE Webinars
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
     MeetingLink  nvarchar(100) NOT NULL,
     VideoLink    nvarchar(100) NOT NULL,
-    Price        money         NULL     DEFAULT NULL CHECK (Price IS NULL OR Price >= 0),
+    Price        money         NULL     CHECK (Price IS NULL OR Price >= 0),
     CONSTRAINT Webinars_unique_video_link UNIQUE (VideoLink),
     CONSTRAINT Webinars_pk PRIMARY KEY (WebinarID)
 );
@@ -165,11 +165,6 @@ CREATE TABLE StationaryCourseMeetings
     MeetingID     int NOT NULL,
     ReservationID int NOT NULL,
     Limit         int NOT NULL DEFAULT 30 CHECK (Limit >= 0),
-    CONSTRAINT StationaryCourseMeetings_limit_check CHECK (Limit <= (SELECT ro.Limit
-                                                                     FROM Reservations AS re
-                                                                              INNER JOIN Rooms AS ro
-                                                                                         ON re.RoomID = ro.RoomID
-                                                                     WHERE ReservationID = re.ReservationID)),
     CONSTRAINT StationaryCourseMeetings_pk PRIMARY KEY (MeetingID)
 );
 
@@ -275,12 +270,6 @@ CREATE TABLE Classes
     Date         datetime      NOT NULL CHECK (Date >= '01-01-1900'),
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
     Price        money         NOT NULL CHECK (Price >= 0),
-    CONSTRAINT date_check CHECK (MeetingID IS NULL OR
-                                 DATE BETWEEN (SELECT sm.BeginDate
-                                               FROM StudyMeetings AS sm
-                                               WHERE MeetingID = sm.MeetingID) AND (SELECT sm.EndDate
-                                                                                    FROM StudyMeetings AS sm
-                                                                                    WHERE MeetingID = sm.MeetingID)),
     CONSTRAINT Classes_pk PRIMARY KEY (ClassID)
 );
 
@@ -369,7 +358,6 @@ CREATE TABLE Orders
     UserID     int           NOT NULL,
     OrderDate  datetime      NOT NULL DEFAULT GETDATE() CHECK (OrderDate <= GETDATE()),
     PaymentURL nvarchar(max) NOT NULL,
-    CONSTRAINT Orders_unique_payment_url UNIQUE (PaymentURL),
     CONSTRAINT Orders_pk PRIMARY KEY (OrderID)
 );
 
@@ -391,7 +379,7 @@ CREATE TABLE CourseOrders
     OrderID              int      NOT NULL,
     CourseID             int      NOT NULL,
     PaymentInAdvance     money    NOT NULL CHECK (PaymentInAdvance >= 0),
-    FullPrice            money    NOT NULL CHECK (FullPrice > PaymentInAdvance),
+    FullPrice            money    NOT NULL,
     PaymentDateInAdvance datetime NULL CHECK (PaymentDateInAdvance IS NULL OR
                                               (PaymentDateInAdvance >= '01-01-1900' AND
                                                PaymentDateInAdvance <= GETDATE())),
@@ -401,6 +389,7 @@ CREATE TABLE CourseOrders
     CONSTRAINT payment_date_check CHECK (PaymentDateInAdvance IS NULL OR
                                          PaymentDateFull IS NULL OR
                                          PaymentDateInAdvance < PaymentDateFull),
+    CONSTRAINT full_price_check CHECK (FullPrice > PaymentInAdvance),
     CONSTRAINT CourseOrders_pk PRIMARY KEY (OrderID, CourseID)
 );
 
