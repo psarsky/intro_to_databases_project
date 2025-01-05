@@ -70,24 +70,6 @@ ALTER TABLE CourseMeetings
         FOREIGN KEY (TeacherID)
             REFERENCES Employees (EmployeeID);
 
--- Reference: CourseMeetings_OnlineAsynchronousCourseMeetings (table: CourseMeetings)
-ALTER TABLE CourseMeetings
-    ADD CONSTRAINT CourseMeetings_OnlineAsynchronousCourseMeetings
-        FOREIGN KEY (MeetingID)
-            REFERENCES OnlineAsynchronousCourseMeetings (MeetingID);
-
--- Reference: CourseMeetings_OnlineSynchronousCourseMeetings (table: CourseMeetings)
-ALTER TABLE CourseMeetings
-    ADD CONSTRAINT CourseMeetings_OnlineSynchronousCourseMeetings
-        FOREIGN KEY (MeetingID)
-            REFERENCES OnlineSynchronousCourseMeetings (MeetingID);
-
--- Reference: CourseMeetings_StationaryCourseMeetings (table: CourseMeetings)
-ALTER TABLE CourseMeetings
-    ADD CONSTRAINT CourseMeetings_StationaryCourseMeetings
-        FOREIGN KEY (MeetingID)
-            REFERENCES StationaryCourseMeetings (MeetingID);
-
 -- Reference: CourseMeetings_TranslatorLanguages (table: CourseMeetings)
 ALTER TABLE CourseMeetings
     ADD CONSTRAINT CourseMeetings_TranslatorLanguages
@@ -154,6 +136,18 @@ ALTER TABLE Classes
         FOREIGN KEY (TranslatorID, LanguageID)
             REFERENCES TranslatorLanguages (TranslatorID, LanguageID);
 
+-- Reference: OnlineAsynchronousCourseMeetings_CourseMeetings (table: OnlineAsynchronousCourseMeetings)
+ALTER TABLE OnlineAsynchronousCourseMeetings
+    ADD CONSTRAINT OnlineAsynchronousCourseMeetings_CourseMeetings
+        FOREIGN KEY (MeetingID)
+            REFERENCES CourseMeetings (MeetingID);
+
+-- Reference: OnlineSynchronousCourseMeetings_CourseMeetings (table: OnlineSynchronousCourseMeetings)
+ALTER TABLE OnlineSynchronousCourseMeetings
+    ADD CONSTRAINT OnlineSynchronousCourseMeetings_CourseMeetings
+        FOREIGN KEY (MeetingID)
+            REFERENCES CourseMeetings (MeetingID);
+
 -- Reference: Orders_Users (table: Orders)
 ALTER TABLE Orders
     ADD CONSTRAINT Orders_Users
@@ -171,6 +165,12 @@ ALTER TABLE StationaryClasses
     ADD CONSTRAINT StationaryClasses_Reservations
         FOREIGN KEY (ReservationID)
             REFERENCES Reservations (ReservationID);
+
+-- Reference: StationaryCourseMeetings_CourseMeetings (table: StationaryCourseMeetings)
+ALTER TABLE StationaryCourseMeetings
+    ADD CONSTRAINT StationaryCourseMeetings_CourseMeetings
+        FOREIGN KEY (MeetingID)
+            REFERENCES CourseMeetings (MeetingID);
 
 -- Reference: StationaryCourseMeetings_Reservations (table: StationaryCourseMeetings)
 ALTER TABLE StationaryCourseMeetings

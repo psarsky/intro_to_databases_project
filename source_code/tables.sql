@@ -102,6 +102,9 @@ CREATE TABLE Courses
     Title         nvarchar(100) NOT NULL,
     Description   nvarchar(max) NULL,
     Price         money         NOT NULL CHECK (Price >= 0),
+    BeginDate     int           NOT NULL CHECK (BeginDate >= '01-01-1900'),
+    EndDate       int           NOT NULL CHECK (EndDate >= '01-01-1900'),
+    CONSTRAINT course_date_check CHECK (EndDate > BeginDate),
     CONSTRAINT Courses_pk PRIMARY KEY (CourseID)
 );
 
@@ -112,7 +115,7 @@ CREATE TABLE CourseModules
     CourseID    int           NOT NULL,
     Title       nvarchar(100) NOT NULL,
     Description nvarchar(max) NULL,
-    ModuleType  nvarchar(12)  NOT NULL CHECK (ModuleType IN ('stationary', 'synchronous', 'asynchronous')),
+    ModuleType  nvarchar(12)  NOT NULL CHECK (ModuleType IN ('stationary', 'synchronous', 'asynchronous', 'hybrid')),
     CONSTRAINT CourseModules_pk PRIMARY KEY (ModuleID)
 );
 
@@ -236,8 +239,6 @@ CREATE TABLE Internships
     StudyID      int      NOT NULL,
     TeacherID    int      NOT NULL,
     StartDate    datetime NOT NULL CHECK (StartDate >= '01-01-1900'),
-    EndDate      datetime NOT NULL CHECK (EndDate >= '01-01-1900'),
-    CONSTRAINT internship_dates_check CHECK (EndDate > StartDate),
     CONSTRAINT Internships_pk PRIMARY KEY (InternshipID)
 );
 
@@ -284,12 +285,13 @@ CREATE TABLE ClassAttendance
 -- Table: StudyMeetings
 CREATE TABLE StudyMeetings
 (
-    MeetingID int      NOT NULL IDENTITY,
-    StudyID   int      NOT NULL,
-    BeginDate datetime NOT NULL CHECK (BeginDate >= '01-01-1900'),
-    EndDate   datetime NOT NULL CHECK (EndDate >= '01-01-1900'),
-    Price     money    NOT NULL CHECK (Price >= 0),
-    Limit     int      NOT NULL CHECK (Limit >= 0),
+    MeetingID int           NOT NULL IDENTITY,
+    StudyID   int           NOT NULL,
+    Title     nvarchar(100) NOT NULL,
+    BeginDate datetime      NOT NULL CHECK (BeginDate >= '01-01-1900'),
+    EndDate   datetime      NOT NULL CHECK (EndDate >= '01-01-1900'),
+    Price     money         NOT NULL CHECK (Price >= 0),
+    Limit     int           NOT NULL CHECK (Limit >= 0),
     CONSTRAINT meeting_date_check CHECK (EndDate > BeginDate),
     CONSTRAINT StudyMeetings_pk PRIMARY KEY (MeetingID)
 );

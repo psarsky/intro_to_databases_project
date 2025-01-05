@@ -402,6 +402,25 @@ VALUES ('non.luctus@google.ca', 'XGV74BWV9UC', 'Amos', 'Harmon', '707-2007 Non A
        ('lectus.ante.dictum@hotmail.couk', 'WXL16MYQ8SJ', 'Claudia', 'Oneal', 'Ap #900-5552 Faucibus Street', '510073',
         'Danao', 'Singapore', '2017-09-19 23:49:24', NULL);
 
+INSERT INTO [Positions] (Name)
+VALUES ('Principal'),
+       ('Administrator'),
+       ('Accountant'),
+       ('Teacher'),
+       ('Translator');
+
+INSERT INTO [Languages] (LanguageName)
+VALUES ('English'),
+       ('German'),
+       ('Russian'),
+       ('French'),
+       ('Spanish'),
+       ('Italian'),
+       ('Chinese'),
+       ('Arabic'),
+       ('Portuguese'),
+       ('Hindi');
+
 INSERT INTO [Employees] (PositionID, Email, Password, FirstName, LastName, HireDate, Phone)
 VALUES (1, 'libero.et.tristique@outlook.net', 'QSU88RUX3YG', 'Diana', 'Cervantes', '2010-02-28 07:39:47', '564831873'),
        (2, 'non@outlook.org', 'SHQ99WON8AR', 'Nayda', 'Dunlap', '2014-04-14 11:14:44', '263473065'),
@@ -475,25 +494,6 @@ VALUES (1, 'libero.et.tristique@outlook.net', 'QSU88RUX3YG', 'Diana', 'Cervantes
        (5, 'ante.blandit@protonmail.edu', 'DMB93ESR4CO', 'Devin', 'Clay', '2013-03-28 00:03:45', '935403714'),
        (5, 'euismod.enim@yahoo.ca', 'BGP89FXM5FY', 'Hope', 'Powell', '2024-08-15 06:17:25', '835946886'),
        (5, 'nec@google.ca', 'UUL23DAI4PH', 'Curran', 'Glenn', '2012-08-28 17:10:01', '733247361');
-
-INSERT INTO [Positions] (Name)
-VALUES ('Principal'),
-       ('Administrator'),
-       ('Accountant'),
-       ('Teacher'),
-       ('Translator');
-
-INSERT INTO [Languages] (LanguageName)
-VALUES ('English'),
-       ('German'),
-       ('Russian'),
-       ('French'),
-       ('Spanish'),
-       ('Italian'),
-       ('Chinese'),
-       ('Arabic'),
-       ('Portuguese'),
-       ('Hindi');
 
 INSERT INTO [TranslatorLanguages] (TranslatorID, LanguageID)
 VALUES (61, 1),
@@ -2240,4 +2240,3 @@ VALUES (12, '2023-10-19 15:29:32', '2023-10-19 17:29:32'),
        (12, '2024-01-05 02:46:50', '2024-01-05 03:46:50'),
        (9, '2023-08-22 08:32:21', '2023-08-22 11:32:21'),
        (13, '2025-04-21 16:56:56', '2025-04-21 19:56:56');
-
