@@ -85,7 +85,7 @@ CREATE TABLE Webinars
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
     MeetingLink  nvarchar(100) NOT NULL,
     VideoLink    nvarchar(100) NOT NULL,
-    Price        money         NULL     CHECK (Price IS NULL OR Price >= 0),
+    Price        money         NULL CHECK (Price IS NULL OR Price >= 0),
     CONSTRAINT Webinars_unique_video_link UNIQUE (VideoLink),
     CONSTRAINT Webinars_pk PRIMARY KEY (WebinarID)
 );
@@ -196,7 +196,7 @@ CREATE TABLE StudyGrades
 (
     StudyID int  NOT NULL,
     UserID  int  NOT NULL,
-    Grade   real NOT NULL CHECK (Grade IN (2.0, 3.0, 3.5, 4.0, 4.5, 5.0)),
+    Grade   real NOT NULL CHECK (Grade BETWEEN 2.0 AND 5.0),
     CONSTRAINT StudyGrades_pk PRIMARY KEY (StudyID, UserID)
 );
 
@@ -225,7 +225,7 @@ CREATE TABLE SubjectGrades
     StudyID   int  NOT NULL,
     UserID    int  NOT NULL,
     SubjectID int  NOT NULL,
-    Grade     real NOT NULL CHECK (Grade BETWEEN 2.0 AND 5.0),
+    Grade     real NOT NULL CHECK (Grade IN (2.0, 3.0, 3.5, 4.0, 4.5, 5.0)),
     CONSTRAINT SubjectGrades_pk PRIMARY KEY (SubjectID, UserID, StudyID)
 );
 
@@ -269,7 +269,6 @@ CREATE TABLE Classes
     Description  nvarchar(max) NULL,
     Date         datetime      NOT NULL CHECK (Date >= '01-01-1900'),
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
-    Price        money         NOT NULL CHECK (Price >= 0),
     CONSTRAINT Classes_pk PRIMARY KEY (ClassID)
 );
 
@@ -286,6 +285,7 @@ CREATE TABLE ClassAttendance
 CREATE TABLE StudyMeetings
 (
     MeetingID int      NOT NULL IDENTITY,
+    StudyID   int      NOT NULL,
     BeginDate datetime NOT NULL CHECK (BeginDate >= '01-01-1900'),
     EndDate   datetime NOT NULL CHECK (EndDate >= '01-01-1900'),
     Price     money    NOT NULL CHECK (Price >= 0),
@@ -357,7 +357,8 @@ CREATE TABLE Orders
     OrderID    int           NOT NULL IDENTITY,
     UserID     int           NOT NULL,
     OrderDate  datetime      NOT NULL DEFAULT GETDATE() CHECK (OrderDate <= GETDATE()),
-    PaymentURL nvarchar(max) NOT NULL,
+    PaymentURL nvarchar(200) NOT NULL,
+    CONSTRAINT Orders_unique_payment_url UNIQUE (PaymentURL),
     CONSTRAINT Orders_pk PRIMARY KEY (OrderID)
 );
 

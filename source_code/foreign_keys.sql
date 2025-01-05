@@ -214,6 +214,12 @@ ALTER TABLE StudyMeetingOrders
         FOREIGN KEY (MeetingID)
             REFERENCES StudyMeetings (MeetingID);
 
+-- Reference: StudyMeetings_Studies (table: StudyMeetings)
+ALTER TABLE StudyMeetings
+    ADD CONSTRAINT StudyMeetings_Studies
+        FOREIGN KEY (StudyID)
+            REFERENCES Studies (StudyID);
+
 -- Reference: StudyOrders_Orders (table: StudyOrders)
 ALTER TABLE StudyOrders
     ADD CONSTRAINT StudyOrders_Orders
