@@ -112,4 +112,114 @@ BEGIN
         SET @Result = 1
 
     RETURN @Result
+END;
+
+CREATE FUNCTION GetMaxCourseCapacity(@CourseID int)
+RETURNS int
+AS
+BEGIN
+    DECLARE @MaxCapacity int;
+
+    SELECT @MaxCapacity = MIN(scm.Limit)
+    FROM StationaryCourseMeetings scm
+    INNER JOIN CourseMeetings cm ON scm.MeetingID = cm.MeetingID
+    INNER JOIN CourseModules cmod ON cm.ModuleID = cmod.ModuleID
+    WHERE cmod.CourseID = @CourseID;
+
+    RETURN @MaxCapacity;
+END;
+
+
+CREATE FUNCTION GetMaxStudyCapacity(@StudyID int)
+RETURNS int
+AS
+BEGIN
+    DECLARE @MaxCapacity int;
+
+    SELECT @MaxCapacity = MIN(sm.Limit)
+    FROM StudyMeetings sm
+    INNER JOIN Studies s ON s.StudyID = sm.StudyID
+    WHERE s.StudyID = @StudyID;
+
+    RETURN @MaxCapacity;
+END;
+
+
+CREATE FUNCTION HowManyStudyVacancies(@StudyID int)
+RETURNS int
+AS
+BEGIN
+    DECLARE @MaximumCapacity int;
+    SELECT @MaximumCapacity = dbo.GetMaxStudyCapacity(@StudyID);
+
+    IF @MaximumCapacity IS NULL
+    BEGIN
+        RETURN @MaximumCapacity
+    END
+
+    DECLARE @CurrentCapacity int;
+    SELECT @CurrentCapacity = COUNT(*)
+        FROM Users
+        WHERE UserID IN (
+            SELECT u.UserID
+            FROM Users AS u
+            JOIN StudentLists AS sl
+            ON u.UserID = sl.UserID
+            WHERE sl.StudyID = @StudyID);
+
+    RETURN @MaximumCapacity - @CurrentCapacity
+END;
+
+CREATE FUNCTION HowManyCourseVacancies(@CourseID int)
+RETURNS int
+AS
+BEGIN
+    DECLARE @MaximumCapacity int;
+    SELECT @MaximumCapacity = dbo.GetMaxCourseCapacity(@CourseID);
+    IF @MaximumCapacity IS NULL
+    BEGIN
+        RETURN NULL;
+    END
+    DECLARE @OccupiedSeats int;
+    SELECT
+        @OccupiedSeats = COUNT(cma.UserID)
+    FROM CourseModules cm
+    INNER JOIN CourseMeetings m ON cm.ModuleID = m.ModuleID
+    LEFT JOIN CourseMeetingAttendance cma ON m.MeetingID = cma.MeetingID AND cma.Attended = 1
+    WHERE cm.CourseID = @CourseID;
+    RETURN @MaximumCapacity - @OccupiedSeats;
+END;
+
+
+CREATE FUNCTION CheckTranslatorLanguage
+(@TranslatorID int null, @LanguageID int null)
+RETURNS bit AS
+BEGIN
+    IF @TranslatorID IS NOT NULL AND NOT EXISTS (SELECT * FROM TranslatorLanguages WHERE TranslatorID = @TranslatorID)
+    BEGIN
+        RETURN CAST(0 AS bit)
+    END
+
+    IF @LanguageID IS NOT NULL AND NOT EXISTS (SELECT * FROM TranslatorLanguages WHERE LanguageID = @LanguageID)
+    BEGIN
+        RETURN CAST(0 AS bit)
+    END
+
+    IF @TranslatorID IS NULL AND @LanguageID IS NOT NULL
+    BEGIN
+        RETURN CAST(0 AS bit)
+    END
+
+    IF @TranslatorID IS NOT NULL AND @LanguageID IS NULL
+    BEGIN
+        RETURN CAST(0 AS bit)
+    END
+
+    IF @TranslatorID IS NOT NULL AND @LanguageID IS NOT NULL AND NOT EXISTS (SELECT * FROM TranslatorLanguages WHERE TranslatorID = @TranslatorID AND LanguageID = @LanguageID)
+    BEGIN
+        RETURN CAST(0 AS bit)
+    END
+
+    RETURN CAST(1 AS bit)
 END
+

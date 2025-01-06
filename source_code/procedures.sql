@@ -410,3 +410,110 @@ BEGIN
         LanguageID   = @LanguageID
     WHERE ClassID = @ClassID
 END
+
+CREATE PROCEDURE AddWebinar
+    @WebinarID int,
+    @TeacherID int,
+    @LanguageID int null,
+    @TranslatorID int null,
+    @Title nvarchar(100),
+    @Description nvarchar(max) null,
+    @Date datetime,
+    @Duration time,
+    @MeetingLink nvarchar(100),
+    @VideoLink nvarchar(100),
+    @Price money
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Employees e
+                   INNER JOIN Positions p ON e.PositionID = p.PositionID
+                   WHERE EmployeeID = @TeacherID
+                     AND p.Name = 'Teacher')
+    BEGIN
+        RAISERROR('Nauczyciel o podanym ID nie istnieje.', 16, 1);
+        RETURN;
+    END
+
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
+    BEGIN
+        RAISERROR('Podano nieprawidłową kombinację tłumacza i języka.', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Webinars (WebinarID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration, MeetingLink, VideoLink, Price)
+    VALUES (@WebinarID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration, @MeetingLink, @VideoLink, @Price);
+END;
+
+
+CREATE PROCEDURE AddCourse
+@CourseID int,
+@CoordinatorID int,
+@Title varchar(100),
+@Description nvarchar(max),
+@Price money
+AS
+BEGIN
+IF NOT EXISTS (SELECT 1
+	FROM Employees e
+	WHERE EmployeeID = @CoordinatorID)
+BEGIN
+RAISERROR('Koordynator o podanym ID nie istnieje.', 16, 1);
+END
+
+    INSERT INTO Courses (CourseID, CoordinatorID, Title, Description, Price)
+    VALUES (@CourseID, @CoordinatorID, @Title, @Description, @Price);
+
+    PRINT 'Kurs dodany pomyślnie.';
+END;
+
+
+CREATE PROCEDURE AddCourseModule
+@ModuleID int,
+@CourseID int,
+@Title nvarchar(100),
+@Description nvarchar(max),
+@ModuleType nvarchar(12)
+AS
+BEGIN
+SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE CourseID = @CourseID)
+    BEGIN
+        RAISERROR('Kurs o podanym ID nie istnieje.', 16, 1);
+    END
+
+    INSERT INTO CourseModules (ModuleID, CourseID, Title, Description, ModuleType)
+    VALUES (@ModuleID, @CourseID, @Title, @Description, @ModuleType);
+
+    PRINT 'Moduł dodany pomyślnie.';
+END;
+
+CREATE PROCEDURE AddCourseMeeting
+@MeetingID int,
+@ModuleID int,
+@TeacherID int,
+@LanguageID int,
+@TranslatorID int,
+@Title nvarchar(100),
+@Description nvarchar(100),
+@Date datetime,
+@Duration time
+AS
+BEGIN
+
+IF @Duration IS NULL
+        BEGIN
+            SET @Duration = '01:30:00'
+        END
+
+IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
+BEGIN
+    RAISERROR('Podano nieprawidłową kombinację tłumacza i języka.', 16, 1);
+END
+
+INSERT INTO CourseMeetings(MeetingID, ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
+VALUES (@MeetingID, @ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
+END;
+
+
