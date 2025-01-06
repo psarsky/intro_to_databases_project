@@ -1995,7 +1995,6 @@ VALUES ('101', 'ornare lectus justo eu arcu. Morbi sit amet', 200),
        ('304', 'cursus non, egestas a, dui. Cras pellentesque. Sed dictum.', 30),
        ('305', 'cursus a, enim. Suspendisse aliquet, sem ut cursus luctus,', 30);
 
-
 INSERT INTO [Reservations] (RoomID, StartTime, EndTime)
 VALUES (12, '2023-10-19 15:29:32', '2023-10-19 17:29:32'),
        (6, '2023-02-04 16:06:51', '2023-02-04 18:06:51'),
