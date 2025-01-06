@@ -115,3 +115,52 @@ UNION
 SELECT *, 'Study meeting' AS Type
 FROM FUTURE_STUDY_MEETINGS_REPORT
 GO;
+
+
+
+CREATE VIEW ClassAttendanceReport AS
+SELECT
+    ClassID AS ID,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
+    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
+    COUNT(*) AS TotalParticipants,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM
+    ClassAttendance
+GROUP BY
+    ClassID;
+
+
+CREATE VIEW CourseMeetingAttendanceReport AS
+SELECT
+    MeetingID AS ID,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
+    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
+    COUNT(*) AS TotalParticipants,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM
+    CourseMeetingAttendance
+GROUP BY
+    MeetingID;
+
+CREATE VIEW InternshipAttendanceReport AS
+SELECT
+    InternshipID AS ID,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
+    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
+    COUNT(*) AS TotalParticipants,
+    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM
+    InternshipAttendance
+GROUP BY
+    InternshipID;
+
+CREATE VIEW AttendanceReport AS
+SELECT *, 'Internship' AS Type
+FROM INTERNSHIP_ATTENDANCE_REPORT
+UNION
+SELECT *, 'Course meeting' AS Type
+FROM COURSE_MEETING_ATTENDANCE_REPORT
+UNION
+SELECT *, 'Classes' AS Type
+FROM CLASSES_ATTENDANCE_REPORT
