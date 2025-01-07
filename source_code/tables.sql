@@ -102,8 +102,8 @@ CREATE TABLE Courses
     Title         nvarchar(100) NOT NULL,
     Description   nvarchar(max) NULL,
     Price         money         NOT NULL CHECK (Price >= 0),
-    BeginDate     int           NOT NULL CHECK (BeginDate >= '01-01-1900'),
-    EndDate       int           NOT NULL CHECK (EndDate >= '01-01-1900'),
+    BeginDate     datetime      NOT NULL CHECK (BeginDate >= '01-01-1900'),
+    EndDate       datetime      NOT NULL CHECK (EndDate >= '01-01-1900'),
     CONSTRAINT course_date_check CHECK (EndDate > BeginDate),
     CONSTRAINT Courses_pk PRIMARY KEY (CourseID)
 );

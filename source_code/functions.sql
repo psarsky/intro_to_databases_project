@@ -114,6 +114,8 @@ BEGIN
     RETURN @Result
 END;
 
+GO
+
 CREATE FUNCTION GetMaxCourseCapacity(@CourseID int)
 RETURNS int
 AS
@@ -129,6 +131,7 @@ BEGIN
     RETURN @MaxCapacity;
 END;
 
+GO
 
 CREATE FUNCTION GetMaxStudyCapacity(@StudyID int)
 RETURNS int
@@ -144,6 +147,7 @@ BEGIN
     RETURN @MaxCapacity;
 END;
 
+GO
 
 CREATE FUNCTION HowManyStudyVacancies(@StudyID int)
 RETURNS int
@@ -170,6 +174,8 @@ BEGIN
     RETURN @MaximumCapacity - @CurrentCapacity
 END;
 
+GO
+
 CREATE FUNCTION HowManyCourseVacancies(@CourseID int)
 RETURNS int
 AS
@@ -190,6 +196,7 @@ BEGIN
     RETURN @MaximumCapacity - @OccupiedSeats;
 END;
 
+GO
 
 CREATE FUNCTION CheckTranslatorLanguage
 (@TranslatorID int null, @LanguageID int null)
@@ -222,4 +229,3 @@ BEGIN
 
     RETURN CAST(1 AS bit)
 END
-
