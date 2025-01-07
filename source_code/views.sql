@@ -116,46 +116,41 @@ SELECT *, 'Study meeting' AS Type
 FROM FUTURE_STUDY_MEETINGS_REPORT
 GO;
 
+-- View: CLASS_ATTENDANCE_REPORT
+CREATE VIEW CLASS_ATTENDANCE_REPORT AS
+SELECT ClassID                                                     AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
+       COUNT(*)                                                    AS TotalParticipants,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM ClassAttendance
+GROUP BY ClassID
+GO;
 
+-- View: COURSE_MEETING_ATTENDANCE_REPORT
+CREATE VIEW COURSE_MEETING_ATTENDANCE_REPORT AS
+SELECT MeetingID                                                   AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
+       COUNT(*)                                                    AS TotalParticipants,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM CourseMeetingAttendance
+GROUP BY MeetingID
+GO;
 
-CREATE VIEW ClassAttendanceReport AS
-SELECT
-    ClassID AS ID,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
-    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
-    COUNT(*) AS TotalParticipants,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
-FROM
-    ClassAttendance
-GROUP BY
-    ClassID;
+-- View: INTERNSHIP_ATTENDANCE_REPORT
+CREATE VIEW INTERNSHIP_ATTENDANCE_REPORT AS
+SELECT InternshipID                                                AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
+       COUNT(*)                                                    AS TotalParticipants,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+FROM InternshipAttendance
+GROUP BY InternshipID
+GO;
 
-
-CREATE VIEW CourseMeetingAttendanceReport AS
-SELECT
-    MeetingID AS ID,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
-    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
-    COUNT(*) AS TotalParticipants,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
-FROM
-    CourseMeetingAttendance
-GROUP BY
-    MeetingID;
-
-CREATE VIEW InternshipAttendanceReport AS
-SELECT
-    InternshipID AS ID,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) AS PresentCount,
-    COUNT(CASE WHEN Attended = 0 THEN 1 END) AS AbsentCount,
-    COUNT(*) AS TotalParticipants,
-    COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
-FROM
-    InternshipAttendance
-GROUP BY
-    InternshipID;
-
-CREATE VIEW AttendanceReport AS
+-- View: ATTENDANCE_REPORT
+CREATE VIEW ATTENDANCE_REPORT AS
 SELECT *, 'Internship' AS Type
 FROM INTERNSHIP_ATTENDANCE_REPORT
 UNION
@@ -163,8 +158,10 @@ SELECT *, 'Course meeting' AS Type
 FROM COURSE_MEETING_ATTENDANCE_REPORT
 UNION
 SELECT *, 'Classes' AS Type
-FROM CLASSES_ATTENDANCE_REPORT
+FROM CLASS_ATTENDANCE_REPORT
+GO;
 
+-- View: LIST_OF_DEBTORS
 CREATE VIEW LIST_OF_DEBTORS AS
 SELECT DISTINCT
     u.UserID AS StudentID,
@@ -234,7 +231,9 @@ AND u.UserID IN (
     FROM Users u
     JOIN StudyMeetingOrders smo ON u.UserID = smo.OrderID
 );
+GO;
 
+-- View: STUDENTS_REGISTERED_FOR_COLLIDING_FUTURE_EVENTS_LIST
 CREATE VIEW STUDENTS_REGISTERED_FOR_COLLIDING_FUTURE_EVENTS_LIST AS
 SELECT DISTINCT
     u.UserID AS StudentID,
@@ -302,3 +301,4 @@ WHERE EXISTS (
                   ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date) END))
     )
 );
+GO;

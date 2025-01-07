@@ -13,7 +13,7 @@ BEGIN
                             INNER JOIN Positions p
                                        ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @CoordinatorID
-                     AND p.PositionID = 'Teacher')
+                     AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 0;
     IF @TuitionFee < 0
         THROW 50001, 'Tuitions fee must be a positive number.', 0;
@@ -33,7 +33,7 @@ BEGIN
                             INNER JOIN Positions p
                                        ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @CoordinatorID
-                     AND p.PositionID = 'Teacher')
+                     AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 1;
 
     INSERT INTO Subjects(CoordinatorID, Title, Description)
@@ -100,7 +100,7 @@ BEGIN
                             INNER JOIN Positions p
                                        ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @TeacherID
-                     AND p.PositionID = 'Teacher')
+                     AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 4;
 
     INSERT INTO Internships(StudyID, TeacherID, StartDate)
@@ -203,15 +203,9 @@ BEGIN
                             INNER JOIN Positions p
                                        ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @TeacherID
-                     AND p.PositionID = 'Teacher')
+                     AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 8;
-    IF (@LanguageID IS NULL AND @TranslatorID IS NOT NULL)
-        OR (@LanguageID IS NOT NULL AND @TranslatorID IS NULL)
-        OR ((@LanguageID IS NOT NULL AND @TranslatorID IS NOT NULL)
-            AND NOT EXISTS (SELECT 1
-                            FROM TranslatorLanguages tl
-                            WHERE tl.LanguageID = @LanguageID
-                              AND tl.TranslatorID = @TranslatorID))
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
         THROW 50008, 'Invalid translator-language pair.', 8;
 
     INSERT INTO Classes(StudyID, SubjectID, MeetingID, TeacherID, LanguageID, TranslatorID, Title, Description, Date,
@@ -353,10 +347,7 @@ BEGIN
                    FROM Webinars w
                    WHERE w.WebinarID = @WebinarID)
         THROW 50007, 'No webinar found for given ID.', 13;
-    IF NOT EXISTS (SELECT 1
-                   FROM TranslatorLanguages tl
-                   WHERE tl.LanguageID = @LanguageID
-                     AND tl.TranslatorID = @TranslatorID)
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
         THROW 50008, 'Invalid translator-language pair.', 13;
 
     UPDATE Webinars
@@ -376,10 +367,7 @@ BEGIN
                    FROM CourseMeetings cm
                    WHERE cm.MeetingID = @MeetingID)
         THROW 50009, 'No course meeting found for given ID.', 14;
-    IF NOT EXISTS (SELECT 1
-                   FROM TranslatorLanguages tl
-                   WHERE tl.LanguageID = @LanguageID
-                     AND tl.TranslatorID = @TranslatorID)
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
         THROW 50008, 'Invalid translator-language pair.', 14;
 
     UPDATE CourseMeetings
@@ -399,10 +387,7 @@ BEGIN
                    FROM Classes c
                    WHERE c.ClassID = @ClassID)
         THROW 50010, 'No class found for given ID.', 15;
-    IF NOT EXISTS (SELECT 1
-                   FROM TranslatorLanguages tl
-                   WHERE tl.LanguageID = @LanguageID
-                     AND tl.TranslatorID = @TranslatorID)
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
         THROW 50008, 'Invalid translator-language pair.', 15;
 
     UPDATE Classes
@@ -411,111 +396,42 @@ BEGIN
     WHERE ClassID = @ClassID
 END
 
-CREATE PROCEDURE AddWebinar
-    @WebinarID int,
-    @TeacherID int,
-    @LanguageID int null,
-    @TranslatorID int null,
-    @Title nvarchar(100),
-    @Description nvarchar(max) null,
-    @Date datetime,
-    @Duration time,
-    @MeetingLink nvarchar(100),
-    @VideoLink nvarchar(100),
-    @Price money
+GO
+
+
+--WEBINARS
+
+CREATE PROCEDURE AddWebinar @TeacherID int,
+                            @LanguageID int,
+                            @TranslatorID int,
+                            @Title nvarchar(100),
+                            @Description nvarchar(max),
+                            @Date datetime,
+                            @Duration time,
+                            @MeetingLink nvarchar(100),
+                            @VideoLink nvarchar(100),
+                            @Price money
 AS
 BEGIN
 
     IF NOT EXISTS (SELECT 1
                    FROM Employees e
-                   INNER JOIN Positions p ON e.PositionID = p.PositionID
+                            INNER JOIN Positions p ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @TeacherID
                      AND p.Name = 'Teacher')
-    BEGIN
-        RAISERROR('Nauczyciel o podanym ID nie istnieje.', 16, 1);
-        RETURN;
-    END
+        THROW 50000, 'No teacher found for given ID.', 16;
 
     IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
-    BEGIN
-        RAISERROR('Podano nieprawidłową kombinację tłumacza i języka.', 16, 1);
-        RETURN;
-    END
+        THROW 50008, 'Invalid translator-language pair.', 16;
 
-    INSERT INTO Webinars (WebinarID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration, MeetingLink, VideoLink, Price)
-    VALUES (@WebinarID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration, @MeetingLink, @VideoLink, @Price);
+
+    INSERT INTO Webinars (TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration, MeetingLink,
+                          VideoLink, Price)
+    VALUES (@TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration, @MeetingLink, @VideoLink,
+            @Price);
 END;
 
-
-CREATE PROCEDURE AddCourse
-@CourseID int,
-@CoordinatorID int,
-@Title varchar(100),
-@Description nvarchar(max),
-@Price money
-AS
-BEGIN
-IF NOT EXISTS (SELECT 1
-	FROM Employees e
-	WHERE EmployeeID = @CoordinatorID)
-BEGIN
-RAISERROR('Koordynator o podanym ID nie istnieje.', 16, 1);
-END
-
-    INSERT INTO Courses (CourseID, CoordinatorID, Title, Description, Price)
-    VALUES (@CourseID, @CoordinatorID, @Title, @Description, @Price);
-
-    PRINT 'Kurs dodany pomyślnie.';
-END;
-
-
-CREATE PROCEDURE AddCourseModule
-@ModuleID int,
-@CourseID int,
-@Title nvarchar(100),
-@Description nvarchar(max),
-@ModuleType nvarchar(12)
-AS
-BEGIN
-SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM Courses WHERE CourseID = @CourseID)
-    BEGIN
-        RAISERROR('Kurs o podanym ID nie istnieje.', 16, 1);
-    END
-
-    INSERT INTO CourseModules (ModuleID, CourseID, Title, Description, ModuleType)
-    VALUES (@ModuleID, @CourseID, @Title, @Description, @ModuleType);
-
-    PRINT 'Moduł dodany pomyślnie.';
-END;
-
-CREATE PROCEDURE AddCourseMeeting
-@MeetingID int,
-@ModuleID int,
-@TeacherID int,
-@LanguageID int,
-@TranslatorID int,
-@Title nvarchar(100),
-@Description nvarchar(100),
-@Date datetime,
-@Duration time
-AS
-BEGIN
-
-IF @Duration IS NULL
-        BEGIN
-            SET @Duration = '01:30:00'
-        END
-
-IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
-BEGIN
-    RAISERROR('Podano nieprawidłową kombinację tłumacza i języka.', 16, 1);
-END
-
-INSERT INTO CourseMeetings(MeetingID, ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
-VALUES (@MeetingID, @ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
-END;
-
+GO
 
 CREATE PROCEDURE UpdateWebinarDate
     @WebinarID int,
@@ -525,21 +441,81 @@ AS
 BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Webinars w
-                   WHERE WebinarID = @WebinarID)
-    BEGIN
-        RAISERROR('Webinar o podanym ID nie istnieje.', 16, 1);
-        RETURN;
-    END
+                   WHERE w.WebinarID = @WebinarID)
+        THROW 50007, 'No webinar found for given ID.', 17;
 
     UPDATE Webinars
     SET Date = @NewDate,
         Duration = @NewDuration
     WHERE WebinarID = @WebinarID;
-
-
-    PRINT 'Webinar data i czas trwania zostały pomyślnie zaktualizowane.';
 END;
 
+GO
+
+
+--COURSES
+
+CREATE PROCEDURE AddCourse @CoordinatorID int,
+                           @Title varchar(100),
+                           @Description nvarchar(max),
+                           @Price money,
+                           @BeginDate datetime,
+                           @EndDate datetime
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Employees e
+                            INNER JOIN Positions p ON e.PositionID = p.PositionID
+                   WHERE EmployeeID = @CoordinatorID
+                     AND p.Name = 'Teacher')
+        THROW 50000, 'No teacher found for given ID.', 18;
+
+    INSERT INTO Courses (CoordinatorID, Title, Description, Price, BeginDate, EndDate)
+    VALUES (@CoordinatorID, @Title, @Description, @Price, @BeginDate, @EndDate);
+END;
+
+GO
+
+CREATE PROCEDURE AddCourseModule @CourseID int,
+                                 @Title nvarchar(100),
+                                 @Description nvarchar(max),
+                                 @ModuleType nvarchar(12)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1
+                   FROM Courses
+                   WHERE CourseID = @CourseID)
+        THROW 50020, 'No course found for given ID.', 19;
+
+    INSERT INTO CourseModules (CourseID, Title, Description, ModuleType)
+    VALUES (@CourseID, @Title, @Description, @ModuleType);
+END;
+
+GO
+
+CREATE PROCEDURE AddCourseMeeting @ModuleID int,
+                                  @TeacherID int,
+                                  @LanguageID int,
+                                  @TranslatorID int,
+                                  @Title nvarchar(100),
+                                  @Description nvarchar(100),
+                                  @Date datetime,
+                                  @Duration time
+AS
+BEGIN
+
+    IF @Duration IS NULL
+        SET @Duration = '01:30:00'
+
+    IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
+        THROW 50008, 'Invalid translator-language pair.', 20;
+
+    INSERT INTO CourseMeetings(ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
+    VALUES (@ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
+END;
+
+GO
 
 CREATE PROCEDURE UpdateCourseMeetingDate
     @MeetingID int,
@@ -548,22 +524,14 @@ CREATE PROCEDURE UpdateCourseMeetingDate
 AS
 BEGIN
     IF @NewDuration IS NULL
-    BEGIN
         SET @NewDuration = '01:30:00'
-    END
-
     IF NOT EXISTS (SELECT 1
                    FROM CourseMeetings cm
-                   WHERE MeetingID = @MeetingID)
-    BEGIN
-        RAISERROR('Spotkanie o podanym ID nie istnieje.', 16, 1);
-        RETURN;
-    END
+                   WHERE cm.MeetingID = @MeetingID)
+        THROW 50009, 'No course meeting found for given ID.', 21;
 
     UPDATE CourseMeetings
     SET Date = @NewDate,
         Duration = @NewDuration
     WHERE MeetingID = @MeetingID;
-
-    PRINT 'Data i czas trwania spotkania zostały pomyślnie zaktualizowane.';
 END;
