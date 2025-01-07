@@ -2722,56 +2722,56 @@ VALUES (161, '2024-01-09 12:40:55', 'https://payment//settings?ffp=8'),
        (179, '2024-10-10 12:03:19', 'https://payment//settings?q=n4');
 
 INSERT INTO StudyMeetingOrders (Orderid, MeetingID, Price, PaymentDate)
-VALUES (1, 300, '49.94', '2012-07-01 23:52:02'),
-       (2, 301, '16.24', '2022-01-21 09:47:48'),
-       (3, 302, '79.91', '2021-03-30 07:43:23'),
-       (4, 303, '60.12', '2024-10-10 02:17:14'),
-       (5, 304, '98.58', '2012-07-02 14:33:21'),
-       (6, 305, '1.81', '2021-04-04 04:45:46'),
-       (7, 306, '29.51', '2021-11-14 18:42:58'),
-       (8, 307, '64.70', '2015-05-14 23:01:21'),
-       (9, 308, '69.48', '2017-06-19 11:49:42'),
-       (10, 309, '77.05', '2007-07-28 07:51:49'),
-       (11, 310, '91.56', '2008-12-05 00:48:05'),
-       (12, 311, '56.41', '2019-04-07 14:21:51'),
-       (13, 312, '35.20', '2007-12-29 21:25:13'),
-       (14, 313, '49.62', '2014-07-22 00:39:16'),
-       (15, 314, '11.36', '2009-06-30 20:57:21'),
-       (16, 315, '49.12', '2004-01-16 22:29:56'),
-       (17, 316, '99.08', '2011-07-17 04:50:19'),
-       (18, 317, '15.66', '2008-03-16 11:10:12'),
-       (19, 318, '63.45', '2010-05-03 00:44:26'),
-       (20, 319, '50.82', '2012-02-04 10:28:21'),
-       (21, 320, '83.76', '2012-11-15 05:54:20');
+VALUES (1, 57, '49.94', '2012-07-01 23:52:02'),
+       (2, 40, '16.24', '2022-01-21 09:47:48'),
+       (3, 43, '79.91', '2021-03-30 07:43:23'),
+       (4, 42, '60.12', '2024-10-10 02:17:14'),
+       (5, 73, '98.58', '2012-07-02 14:33:21'),
+       (6, 18, '1.81', '2021-04-04 04:45:46'),
+       (7, 58, '29.51', '2021-11-14 18:42:58'),
+       (8, 43, '64.70', '2015-05-14 23:01:21'),
+       (9, 80, '69.48', '2017-06-19 11:49:42'),
+       (10, 78, '77.05', '2007-07-28 07:51:49'),
+       (11, 48, '91.56', '2008-12-05 00:48:05'),
+       (12, 98, '56.41', '2019-04-07 14:21:51'),
+       (13, 20, '35.20', '2007-12-29 21:25:13'),
+       (14, 36, '49.62', '2014-07-22 00:39:16'),
+       (15, 96, '11.36', '2009-06-30 20:57:21'),
+       (16, 9, '49.12', '2004-01-16 22:29:56'),
+       (17, 87, '99.08', '2011-07-17 04:50:19'),
+       (18, 100, '15.66', '2008-03-16 11:10:12'),
+       (19, 15, '63.45', '2010-05-03 00:44:26'),
+       (20, 57, '50.82', '2012-02-04 10:28:21'),
+       (21, 49, '83.76', '2012-11-15 05:54:20');
 
 INSERT INTO StudyOrders (OrderID, StudyID, Price, PaymentDate)
-VALUES (22, 52, 66.51, '2024-06-15 02:57:50'),
-       (23, 88, 42.85, '2021-06-20 17:54:24'),
-       (24, 78, 7.35, '2024-12-20 15:53:51'),
-       (25, 3, 65.68, '2024-06-26 17:43:04'),
-       (26, 95, 96.80, '2020-12-30 14:06:40'),
-       (27, 15, 65.79, '2020-02-27 04:22:09'),
-       (28, 54, 59.65, '2020-10-02 13:58:04'),
-       (29, 93, 88.74, '2021-10-29 09:51:35'),
-       (30, 69, 91.58, '2021-05-22 18:43:26'),
-       (31, 5, 64.93, '2021-07-08 08:18:04'),
-       (32, 83, 34.46, '2021-01-23 10:50:34'),
-       (33, 38, 93.55, '2024-03-01 04:42:39'),
-       (34, 47, 36.56, '2023-10-19 22:01:00'),
-       (35, 13, 49.51, '2023-05-21 11:01:55'),
-       (36, 87, 69.59, '2020-09-21 12:35:51'),
-       (37, 52, 29.07, '2023-09-21 00:36:06'),
-       (38, 89, 47.11, '2024-06-11 10:58:19'),
-       (39, 16, 49.48, '2022-12-29 21:03:59'),
-       (40, 53, 48.78, '2022-11-02 19:07:02'),
-       (41, 64, 71.54, '2023-04-10 19:59:30'),
-       (42, 64, 58.14, '2022-02-25 20:31:24'),
-       (43, 30, 73.05, '2023-10-31 09:15:23'),
-       (44, 54, 90.61, '2024-07-01 02:03:55'),
-       (45, 80, 89.80, '2024-10-30 10:48:44'),
-       (46, 22, 84.33, '2022-12-28 07:58:49'),
-       (47, 79, 19.73, '2024-06-04 01:36:41'),
-       (48, 59, 14.48, '2024-10-26 16:45:17');
+VALUES (22, 7, 66.51, '2024-06-15 02:57:50'),
+       (23, 8, 42.85, '2021-06-20 17:54:24'),
+       (24, 3, 7.35, '2024-12-20 15:53:51'),
+       (25, 1, 65.68, '2024-06-26 17:43:04'),
+       (26, 1, 96.8, '2020-12-30 14:06:40'),
+       (27, 10, 65.79, '2020-02-27 04:22:09'),
+       (28, 10, 59.65, '2020-10-02 13:58:04'),
+       (29, 3, 88.74, '2021-10-29 09:51:35'),
+       (30, 8, 91.58, '2021-05-22 18:43:26'),
+       (31, 8, 64.93, '2021-07-08 08:18:04'),
+       (32, 5, 34.46, '2021-01-23 10:50:34'),
+       (33, 3, 93.55, '2024-03-01 04:42:39'),
+       (34, 3, 36.56, '2023-10-19 22:01:00'),
+       (35, 9, 49.51, '2023-05-21 11:01:55'),
+       (36, 8, 69.59, '2020-09-21 12:35:51'),
+       (37, 7, 29.07, '2023-09-21 00:36:06'),
+       (38, 9, 47.11, '2024-06-11 10:58:19'),
+       (39, 6, 49.48, '2022-12-29 21:03:59'),
+       (40, 9, 48.78, '2022-11-02 19:07:02'),
+       (41, 3, 71.54, '2023-04-10 19:59:30'),
+       (42, 2, 58.14, '2022-02-25 20:31:24'),
+       (43, 1, 73.05, '2023-10-31 09:15:23'),
+       (44, 8, 90.61, '2024-07-01 02:03:55'),
+       (45, 7, 89.8, '2024-10-30 10:48:44'),
+       (46, 7, 84.33, '2022-12-28 07:58:49'),
+       (47, 6, 19.73, '2024-06-04 01:36:41'),
+       (48, 2, 14.48, '2024-10-26 16:45:17');
 
 INSERT INTO WebinarOrders (OrderID, WebinarID, Price, PaymentDate)
 VALUES (49, 107, 5.56, '2020-11-21 19:04:13'),
@@ -3082,7 +3082,6 @@ VALUES (43, 'Networked global Graphical User Interface', 'integer tincidunt ante
 (28, 'Expanded fresh-thinking workforce', 'luctus tincidunt nulla mollis molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse platea dictumst aliquam augue quam sollicitudin vitae consectetuer eget rutrum at lorem integer tincidunt ante vel ipsum praesent blandit lacinia erat vestibulum sed magna at nunc commodo placerat praesent blandit nam nulla integer pede justo lacinia eget tincidunt eget tempus vel pede morbi porttitor lorem id ligula suspendisse ornare consequat lectus in est risus auctor', 76.7),
 (40, 'Optional impactful matrix', 'ipsum aliquam non mauris morbi non lectus aliquam sit amet diam in magna bibendum imperdiet nullam orci pede venenatis non sodales sed tincidunt eu felis fusce posuere felis sed lacus morbi sem mauris laoreet ut rhoncus aliquet pulvinar sed nisl nunc rhoncus dui vel sem sed sagittis nam congue risus semper porta volutpat quam pede lobortis ligula sit amet eleifend pede libero quis orci nullam', 41.0);
 
-
 INSERT INTO [StudentLists] (StudyID, UserID)
 VALUES (1, 1),
 (1, 2),
@@ -3285,7 +3284,6 @@ VALUES (1, 1),
 (10, 199),
 (10, 200);
 
-
 INSERT INTO Internships (StudyID, TeacherID, StartDate)
 VALUES (1, 38, '2024-06-10 01:43:19'),
 (2, 32, '2024-06-18 12:24:37'),
@@ -3297,7 +3295,6 @@ VALUES (1, 38, '2024-06-10 01:43:19'),
 (8, 22, '2025-08-25 20:17:10'),
 (9, 17, '2025-06-10 10:12:10'),
 (10, 40, '2025-06-22 02:29:29');
-
 
 INSERT INTO InternshipAttendance (InternshipID, UserID, StudyID, Attended)
 VALUES (1, 1, 1, 0),
@@ -3501,7 +3498,6 @@ VALUES (1, 1, 1, 0),
 (10, 199, 10, 0),
 (10, 200, 10, 1);
 
-
 INSERT INTO Subjects (CoordinatorID, Title, Description)
 VALUES (15, 'Omniture', 'maecenas leo odio condimentum id luctus nec molestie sed justo pellentesque viverra pede ac diam cras pellentesque volutpat dui maecenas tristique est et tempus semper est quam pharetra magna ac consequat metus sapien ut nunc vestibulum ante ipsum primis in faucibus orci luctus et ultrices'),
 (54, 'PSD', 'orci mauris lacinia sapien quis libero nullam sit amet turpis elementum ligula vehicula consequat morbi a ipsum integer a nibh in quis justo maecenas rhoncus aliquam lacus morbi quis tortor id nulla ultrices aliquet maecenas leo odio condimentum id luctus'),
@@ -3604,7 +3600,6 @@ VALUES (15, 'Omniture', 'maecenas leo odio condimentum id luctus nec molestie se
 (38, 'Etching', 'arcu adipiscing molestie hendrerit at vulputate vitae nisl aenean lectus pellentesque eget nunc donec quis orci eget orci vehicula condimentum'),
 (53, 'TD-SCDMA', 'tristique fusce congue diam id ornare imperdiet sapien urna pretium nisl ut volutpat sapien arcu sed augue aliquam erat volutpat in congue etiam justo etiam pretium iaculis justo in hac habitasse platea dictumst etiam faucibus cursus urna ut tellus nulla ut erat id mauris vulputate elementum nullam varius nulla facilisi cras non velit nec nisi vulputate nonummy maecenas tincidunt lacus at velit vivamus');
 
-
 INSERT INTO SubjectDetails (StudyID, SubjectID, SemesterNo)
 VALUES ('1', '1', '1'),
 ('1', '2', '1'),
@@ -3706,7 +3701,6 @@ VALUES ('1', '1', '1'),
 ('10', '98', '5'),
 ('10', '99', '6'),
 ('10', '100', '7');
-
 
 INSERT INTO [SubjectGrades] (StudyID, UserID, SubjectID, Grade)
 VALUES (1, 1, 1, 4.0),
@@ -3894,7 +3888,6 @@ VALUES (1, 1, 1, 4.0),
 (2, 35, 13, 4.0),
 (2, 36, 13, 3.5),
 (2, 37, 13, 3.5),
-
 (2, 21, 14, 3.5),
 (2, 22, 14, 3.5),
 (2, 23, 14, 4.5),
@@ -3912,7 +3905,6 @@ VALUES (1, 1, 1, 4.0),
 (2, 35, 14, 4.5),
 (2, 36, 14, 3.5),
 (2, 37, 14, 3.0),
-
 (2, 21, 15, 3.0),
 (2, 22, 15, 4.0),
 (2, 23, 15, 3.0),
@@ -3927,7 +3919,6 @@ VALUES (1, 1, 1, 4.0),
 (2, 32, 15, 3.0),
 (2, 33, 15, 4.0),
 (2, 34, 15, 3.5),
-
 (2, 21, 16, 2.0),
 (2, 22, 16, 3.5),
 (2, 23, 16, 3.5),
@@ -4025,7 +4016,6 @@ VALUES (1, 1, 1, 4.0),
 (3, 55, 23, 4.0),
 (3, 56, 23, 2.0),
 (3, 57, 23, 3.0),
-
 (3, 41, 24, 4.5),
 (3, 42, 24, 3.0),
 (3, 43, 24, 4.5),
@@ -4043,7 +4033,6 @@ VALUES (1, 1, 1, 4.0),
 (3, 55, 24, 3.5),
 (3, 56, 24, 3.0),
 (3, 57, 24, 4.0),
-
 (3, 41, 25, 3.0),
 (3, 42, 25, 4.0),
 (3, 43, 25, 3.0),
@@ -4058,7 +4047,6 @@ VALUES (1, 1, 1, 4.0),
 (3, 52, 25, 4.0),
 (3, 53, 25, 4.0),
 (3, 54, 25, 4.5),
-
 (3, 41, 26, 3.0),
 (3, 42, 26, 2.0),
 (3, 43, 26, 4.5),
@@ -4353,9 +4341,8 @@ VALUES (1, 1, 1, 4.0),
 (5, 84, 49, 4.5),
 (5, 85, 49, 4.0),
 (5, 81, 50, 4.5),
-(5, 82, 50, 4.0);
-INSERT INTO [SubjectGrades] (StudyID, UserID, SubjectID, Grade)
-VALUES (6, 101, 51, 3.0),
+(5, 82, 50, 4.0),
+(6, 101, 51, 3.0),
 (6, 102, 51, 4.0),
 (6, 103, 51, 3.0),
 (6, 104, 51, 4.0),
@@ -4997,8 +4984,7 @@ VALUES (6, 101, 51, 3.0),
 (10, 182, 100, 3.0);
 
 
---Meetings
-
+-- MEETINGS
 
 INSERT INTO StudyMeetings (StudyID, Title, BeginDate, EndDate, Price, Limit)
 VALUES (1, 'magnis dis', '2024-01-18 02:22:46', '2024-01-18 10:22:46', 17.9, 118),
@@ -5101,7 +5087,6 @@ VALUES (1, 'magnis dis', '2024-01-18 02:22:46', '2024-01-18 10:22:46', 17.9, 118
 (10, 'erat', '2024-05-12 07:48:07', '2024-05-12 15:48:07', 15.4, 72),
 (10, 'aliquet ultrices erat', '2024-06-29 23:20:16', '2024-06-30 07:20:16', 57.9, 99),
 (10, 'sapien ut', '2024-02-23 06:36:24', '2024-02-23 14:36:24', 5.0, 124);
-
 
 INSERT INTO [Classes] (StudyID, SubjectID, MeetingID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
 VALUES (1, 1, 1, 48, null, null, 'nulla integer pede', 'luctus tincidunt nulla mollis molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse platea dictumst aliquam augue quam sollicitudin vitae consectetuer eget rutrum at', '2025-01-11 03:16:54', '0:26:00'),
@@ -6105,7 +6090,6 @@ VALUES (1, 1, 1, 48, null, null, 'nulla integer pede', 'luctus tincidunt nulla m
 (10, 100, 99, 55, null, null, 'integer non', 'morbi vel lectus in quam fringilla rhoncus mauris enim leo rhoncus sed vestibulum sit amet cursus id turpis integer aliquet massa id', '2024-01-03 09:02:35', '1:32:00'),
 (10, 100, 100, 12, null, null, 'consectetuer', 'velit vivamus vel nulla eget eros elementum pellentesque quisque porta volutpat erat quisque erat eros viverra eget congue eget semper rutrum', '2025-04-05 14:24:30', '0:35:00');
 
-
 INSERT INTO StationaryClasses (ClassID, ReservationID)
 VALUES(1, 1),
 (2, 2),
@@ -6440,7 +6424,6 @@ VALUES(1, 1),
 (331, 89),
 (332, 90),
 (333, 91);
-
 
 INSERT INTO OnlineAsynchronousClasses (ClassID, VideoLink)
 VALUES (334, 'https://www.videolink.pl/1sV5nUeb'),
@@ -6777,7 +6760,6 @@ VALUES (334, 'https://www.videolink.pl/1sV5nUeb'),
 (665, 'https://www.videolink.pl/61DQb3xy'),
 (666, 'https://www.videolink.pl/t6YWlBp7');
 
-
 INSERT INTO OnlineSynchronousClasses (ClassID, MeetingLink, VideoLink)
 VALUES (667, 'https://www.meetinglink.pl/x2ANxUbr', 'https://www.videolink.pl/k7AGxM0x'),
 (668, 'https://www.meetinglink.pl/peQMiHnr', 'https://www.videolink.pl/5wUO6Iwm'),
@@ -7113,7 +7095,6 @@ VALUES (667, 'https://www.meetinglink.pl/x2ANxUbr', 'https://www.videolink.pl/k7
 (998, 'https://www.meetinglink.pl/m17I9Fde', 'https://www.videolink.pl/357H5F2x'),
 (999, 'https://www.meetinglink.pl/90UE425q', 'https://www.videolink.pl/nwU176eb'),
 (1000, 'https://www.meetinglink.pl/7bVUjS4x', 'https://www.videolink.pl/ezY6i5v0');
-
 
 INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
 VALUES (1, 1, 1),
@@ -8115,9 +8096,8 @@ VALUES (1, 1, 1),
 (50, 17, 1),
 (50, 18, 0),
 (50, 19, 1),
-(50, 20, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (51, 1, 0),
+(50, 20, 1),
+(51, 1, 0),
 (51, 2, 1),
 (51, 3, 1),
 (51, 4, 0),
@@ -9116,9 +9096,8 @@ VALUES (51, 1, 0),
 (100, 17, 0),
 (100, 18, 0),
 (100, 19, 1),
-(100, 20, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (101, 21, 1),
+(100, 20, 1),
+(101, 21, 1),
 (101, 22, 1),
 (101, 23, 0),
 (101, 24, 1),
@@ -10117,9 +10096,8 @@ VALUES (101, 21, 1),
 (150, 37, 0),
 (150, 38, 0),
 (150, 39, 0),
-(150, 40, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (151, 21, 1),
+(150, 40, 0),
+(151, 21, 1),
 (151, 22, 0),
 (151, 23, 1),
 (151, 24, 1),
@@ -11118,9 +11096,8 @@ VALUES (151, 21, 1),
 (200, 37, 1),
 (200, 38, 1),
 (200, 39, 0),
-(200, 40, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (201, 41, 0),
+(200, 40, 1),
+(201, 41, 0),
 (201, 42, 1),
 (201, 43, 1),
 (201, 44, 0),
@@ -12119,9 +12096,8 @@ VALUES (201, 41, 0),
 (250, 57, 0),
 (250, 58, 1),
 (250, 59, 1),
-(250, 60, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (251, 41, 0),
+(250, 60, 1),
+(251, 41, 0),
 (251, 42, 1),
 (251, 43, 1),
 (251, 44, 0),
@@ -13120,9 +13096,8 @@ VALUES (251, 41, 0),
 (300, 57, 1),
 (300, 58, 1),
 (300, 59, 1),
-(300, 60, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (301, 61, 0),
+(300, 60, 0),
+(301, 61, 0),
 (301, 62, 1),
 (301, 63, 1),
 (301, 64, 0),
@@ -14121,9 +14096,8 @@ VALUES (301, 61, 0),
 (350, 77, 0),
 (350, 78, 0),
 (350, 79, 0),
-(350, 80, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (351, 61, 1),
+(350, 80, 1),
+(351, 61, 1),
 (351, 62, 1),
 (351, 63, 1),
 (351, 64, 0),
@@ -15122,9 +15096,8 @@ VALUES (351, 61, 1),
 (400, 77, 1),
 (400, 78, 1),
 (400, 79, 1),
-(400, 80, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (401, 81, 0),
+(400, 80, 1),
+(401, 81, 0),
 (401, 82, 1),
 (401, 83, 1),
 (401, 84, 1),
@@ -16123,9 +16096,8 @@ VALUES (401, 81, 0),
 (450, 97, 1),
 (450, 98, 0),
 (450, 99, 1),
-(450, 100, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (451, 81, 1),
+(450, 100, 0),
+(451, 81, 1),
 (451, 82, 1),
 (451, 83, 0),
 (451, 84, 0),
@@ -17124,9 +17096,8 @@ VALUES (451, 81, 1),
 (500, 97, 0),
 (500, 98, 0),
 (500, 99, 0),
-(500, 100, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (501, 101, 1),
+(500, 100, 0),
+(501, 101, 1),
 (501, 102, 0),
 (501, 103, 0),
 (501, 104, 1),
@@ -18125,9 +18096,8 @@ VALUES (501, 101, 1),
 (550, 117, 1),
 (550, 118, 1),
 (550, 119, 0),
-(550, 120, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (551, 101, 0),
+(550, 120, 1),
+(551, 101, 0),
 (551, 102, 1),
 (551, 103, 1),
 (551, 104, 1),
@@ -19126,9 +19096,8 @@ VALUES (551, 101, 0),
 (600, 117, 1),
 (600, 118, 1),
 (600, 119, 0),
-(600, 120, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (601, 121, 0),
+(600, 120, 1),
+(601, 121, 0),
 (601, 122, 1),
 (601, 123, 1),
 (601, 124, 0),
@@ -20127,9 +20096,8 @@ VALUES (601, 121, 0),
 (650, 137, 0),
 (650, 138, 1),
 (650, 139, 1),
-(650, 140, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (651, 121, 0),
+(650, 140, 1),
+(651, 121, 0),
 (651, 122, 0),
 (651, 123, 0),
 (651, 124, 0),
@@ -21128,9 +21096,8 @@ VALUES (651, 121, 0),
 (700, 137, 0),
 (700, 138, 1),
 (700, 139, 1),
-(700, 140, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (701, 141, 1),
+(700, 140, 1),
+(701, 141, 1),
 (701, 142, 0),
 (701, 143, 1),
 (701, 144, 0),
@@ -22129,9 +22096,8 @@ VALUES (701, 141, 1),
 (750, 157, 0),
 (750, 158, 0),
 (750, 159, 0),
-(750, 160, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (751, 141, 1),
+(750, 160, 1),
+(751, 141, 1),
 (751, 142, 1),
 (751, 143, 0),
 (751, 144, 0),
@@ -23130,9 +23096,8 @@ VALUES (751, 141, 1),
 (800, 157, 1),
 (800, 158, 0),
 (800, 159, 0),
-(800, 160, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (801, 161, 1),
+(800, 160, 0),
+(801, 161, 1),
 (801, 162, 0),
 (801, 163, 1),
 (801, 164, 0),
@@ -24131,9 +24096,8 @@ VALUES (801, 161, 1),
 (850, 177, 1),
 (850, 178, 0),
 (850, 179, 1),
-(850, 180, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (851, 161, 1),
+(850, 180, 0),
+(851, 161, 1),
 (851, 162, 1),
 (851, 163, 0),
 (851, 164, 0),
@@ -25132,9 +25096,8 @@ VALUES (851, 161, 1),
 (900, 177, 0),
 (900, 178, 0),
 (900, 179, 0),
-(900, 180, 1);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (901, 181, 1),
+(900, 180, 1),
+(901, 181, 1),
 (901, 182, 1),
 (901, 183, 0),
 (901, 184, 0),
@@ -26133,9 +26096,8 @@ VALUES (901, 181, 1),
 (950, 197, 0),
 (950, 198, 1),
 (950, 199, 1),
-(950, 200, 0);
-INSERT INTO [ClassAttendance] (ClassID, UserID, Attended)
-VALUES (951, 181, 1),
+(950, 200, 0),
+(951, 181, 1),
 (951, 182, 1),
 (951, 183, 0),
 (951, 184, 0),

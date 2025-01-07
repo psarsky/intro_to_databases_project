@@ -1,5 +1,36 @@
 GO
 
+CREATE FUNCTION CheckInternshipAttendance(@StudentID int)
+    RETURNS bit
+AS
+BEGIN
+    DECLARE @Result bit = 0
+    IF EXISTS (SELECT 1 FROM StudentLists WHERE UserID = @StudentID)
+        BEGIN
+            -- Check if any internships assigned to the student have ended
+            IF EXISTS (SELECT 1
+                       FROM Internships i
+                                INNER JOIN StudentLists sl
+                                           ON i.StudyID = sl.StudyID
+                       WHERE sl.UserID = @StudentID
+                         AND i.StartDate <= GETDATE() - 14)
+                BEGIN
+                    -- Check if the student attended all assigned internships that have ended
+                    IF NOT EXISTS (SELECT 1
+                                   FROM InternshipAttendance ia
+                                            INNER JOIN Internships i
+                                                       ON ia.InternshipID = i.InternshipID
+                                   WHERE i.StartDate <= GETDATE() - 14
+                                     AND ia.UserID = @StudentID
+                                     AND ia.Attended = 0)
+                        SET @Result = 1
+                END
+        END
+    RETURN @Result
+END
+
+GO
+
 CREATE FUNCTION GetOrderValue(@OrderID int)
     RETURNS money
 AS
@@ -29,37 +60,6 @@ BEGIN
                                 WHERE wo.OrderID = @OrderID)
         END
     RETURN @StudiesSum + @CoursesSum + @WebinarsSum + @StudyMeetingsSum
-END
-
-GO
-
-CREATE FUNCTION CheckInternshipAttendance(@StudentID int)
-    RETURNS bit
-AS
-BEGIN
-    DECLARE @Result bit = 0
-    IF EXISTS (SELECT 1 FROM StudentLists WHERE UserID = @StudentID)
-        BEGIN
-            -- Check if any internships assigned to the student have ended
-            IF EXISTS (SELECT 1
-                       FROM Internships i
-                                INNER JOIN StudentLists sl
-                                           ON i.StudyID = sl.StudyID
-                       WHERE sl.UserID = @StudentID
-                         AND i.StartDate <= GETDATE() - 14)
-                BEGIN
-                    -- Check if the student attended all assigned internships that have ended
-                    IF NOT EXISTS (SELECT 1
-                                   FROM InternshipAttendance ia
-                                            INNER JOIN Internships i
-                                                       ON ia.InternshipID = i.InternshipID
-                                   WHERE i.StartDate <= GETDATE() - 14
-                                     AND ia.UserID = @StudentID
-                                     AND ia.Attended = 0)
-                        SET @Result = 1
-                END
-        END
-    RETURN @Result
 END
 
 GO
@@ -243,99 +243,102 @@ BEGIN
     RETURN CAST(1 AS bit)
 END
 
-
+GO
 
 CREATE FUNCTION GenerateStudentSchedule(@UserID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT 
-        c.Title AS MeetingTitle,
-        c.Date AS Start,
-        c.Duration AS Duration,
-        sub.Title AS SubjectTitle,
-        stud.Title AS StudiesTitle
-    FROM Classes as c
-    JOIN Subjects as sub on sub.SubjectID = c.SubjectID
-    JOIN Studies s ON sub.StudyID = s.StudyID
-    JOIN StudentLists sl ON sl.StudyID = s.StudyID
-    WHERE sl.UserID = @UserID
-    UNION
-    SELECT 
-        cm.Title AS MeetingTitle,
-        cm.Date AS Start,
-        cm.Duration AS Duration,
-        c.Title AS SubjectTitle,
-        NULL AS StudiesTitle
-    FROM CourseMeetings AS cm
-    JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
-    JOIN Courses AS c ON cmod.CourseID = cma.CourseID
-    JOIN CourseOrders AS co ON c.CourseID = co.CourseID
-    JOIN Orders AS o ON co.OrderID = o.OrderID
-    WHERE o.UserID = @UserID
-    UNION
-    SELECT 
-        w.Title AS MeetingTitle,
-        w.Date AS Start,
-        w.Duration AS Duration,
-        NULL AS SubjectTitle,
-        NULL AS StudiesTitle
-    FROM Webinars AS w
-    JOIN WebinarOrders AS wo ON w.WebinarID = wo.WebinarID
-    JOIN Orders AS o ON wo.OrderID = o.OrderID
-    WHERE o.UserID = @UserID
-    ORDER BY Start
-);
+    RETURNS TABLE
+        AS
+        RETURN(SELECT c.Title    AS MeetingTitle,
+                      c.Date     AS Start,
+                      c.Duration AS Duration,
+                      sub.Title  AS SubjectTitle,
+                      s.Title    AS StudiesTitle
+               FROM Classes AS c
+                        JOIN Subjects AS sub
+                             ON sub.SubjectID = c.SubjectID
+                        JOIN SubjectDetails sd
+                             ON sd.SubjectID = sub.SubjectID
+                        JOIN Studies s
+                             ON sd.StudyID = s.StudyID
+                        JOIN StudentLists sl
+                             ON sl.StudyID = s.StudyID
+               WHERE sl.UserID = @UserID
+               UNION
+               SELECT cm.Title    AS MeetingTitle,
+                      cm.Date     AS Start,
+                      cm.Duration AS Duration,
+                      c.Title     AS SubjectTitle,
+                      NULL        AS StudiesTitle
+               FROM CourseMeetings AS cm
+                        JOIN CourseModules AS cmod
+                             ON cm.ModuleID = cmod.ModuleID
+                        JOIN Courses AS c
+                             ON cmod.CourseID = c.CourseID
+                        JOIN CourseOrders AS co
+                             ON c.CourseID = co.CourseID
+                        JOIN Orders AS o
+                             ON co.OrderID = o.OrderID
+               WHERE o.UserID = @UserID
+               UNION
+               SELECT w.Title    AS MeetingTitle,
+                      w.Date     AS Start,
+                      w.Duration AS Duration,
+                      NULL       AS SubjectTitle,
+                      NULL       AS StudiesTitle
+               FROM Webinars AS w
+                        JOIN WebinarOrders AS wo
+                             ON w.WebinarID = wo.WebinarID
+                        JOIN Orders AS o
+                             ON wo.OrderID = o.OrderID
+               WHERE o.UserID = @UserID);
+
+GO
 
 CREATE FUNCTION GenerateCourseSchedule(@CourseID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT cm.Title, cm.Date, cm.Duration, c.Title AS CourseTitle, cmod.Tile AS ModuleTitle
-    FROM CourseMeetings AS cm
-    JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
-    JOIN Courses AS c ON cmod.CourseID = c.CourseID
-    WHERE c.CourseID = @CourseID
-    ORDER BY cm.Date
-);
+    RETURNS TABLE
+        AS
+        RETURN(SELECT cm.Title, cm.Date, cm.Duration, c.Title AS CourseTitle, cmod.Title AS ModuleTitle
+               FROM CourseMeetings AS cm
+                        JOIN CourseModules AS cmod
+                             ON cm.ModuleID = cmod.ModuleID
+                        JOIN Courses AS c
+                             ON cmod.CourseID = c.CourseID
+               WHERE c.CourseID = @CourseID);
+
+GO
 
 CREATE FUNCTION GenerateStudySchedule(@StudyID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT c.Title, c.Date, c.Duration, s.Title AS StudyTitle sub.Title AS SubjectTitle
-    FROM Classes AS c
-    JOIN Subject AS sub ON c.SubjectID = sub.SubjectID
-    JOIN Studies AS s ON c.StudyID = s.StudyID
-    WHERE s.StudyID = @StudyID
-    ORDER BY c.Date
-);
+    RETURNS TABLE
+        AS
+        RETURN(SELECT c.Title, c.Date, c.Duration, s.Title AS StudyTitle, sub.Title AS SubjectTitle
+               FROM Classes AS c
+                        JOIN Subjects AS sub
+                             ON c.SubjectID = sub.SubjectID
+                        JOIN Studies AS s
+                             ON c.StudyID = s.StudyID
+               WHERE s.StudyID = @StudyID);
+
+GO
 
 CREATE FUNCTION StudyClassesGenerateAttendanceList(@ClassID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT u.FirstName, u.LastName, ca.Attended
-    FROM Classes AS c
-    JOIN ClassAttendance AS ca ON c.ClassID = ca.ClassID
-    JOIN Users AS u ON ca.UserID = u.UserID
-    WHERE c.ClassID = @ClassID
-    ORDER BY LastName, FirstName
-);
+    RETURNS TABLE
+        AS
+        RETURN(SELECT u.FirstName, u.LastName, ca.Attended
+               FROM Classes AS c
+                        JOIN ClassAttendance AS ca
+                             ON c.ClassID = ca.ClassID
+                        JOIN Users AS u
+                             ON ca.UserID = u.UserID
+               WHERE c.ClassID = @ClassID);
 
-CREATE FUNCTION CourseMeetingGenerateAttendanceList(@ClassID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT u.FirstName, u.LastName, cma.Attended
-    FROM CourseMeetings AS cm
-    JOIN CourseMeetingAttendance AS cma ON cm.MeetingID = cma.MeetingID
-    JOIN Users AS u ON cma.UserID = u.UserID
-    WHERE cm.MeetingID = @MeetingID
-    ORDER BY LastName, FirstName
-);
+GO
+
+CREATE FUNCTION CourseMeetingGenerateAttendanceList(@MeetingID INT)
+    RETURNS TABLE
+        AS
+        RETURN(SELECT u.FirstName, u.LastName, cma.Attended
+               FROM CourseMeetings AS cm
+                        JOIN CourseMeetingAttendance AS cma
+                             ON cm.MeetingID = cma.MeetingID
+                        JOIN Users AS u ON cma.UserID = u.UserID
+               WHERE cm.MeetingID = @MeetingID);
