@@ -161,15 +161,15 @@ SELECT *, 'Classes' AS Type
 FROM CLASS_ATTENDANCE_REPORT
 GO;
 
---View: HarmonogramOfWebinars
-CREATE VIEW HarmonogramOfWebinars AS
+--View: WEBINAR_TIMETABLE
+CREATE VIEW WEBINAR_TIMETABLE AS
 SELECT Date, Duration, Title
 FROM Webinars
 ORDER BY Date
 GO;
 
---View: HarmonogramOfCourses
-CREATE VIEW HarmonogramOfCourses AS
+--View: COURSE_TIMETABLE
+CREATE VIEW COURSE_TIMETABLE AS
 SELECT cm.Date, cm.Duration, cm.Title AS MeetingTitle, cmod.Title AS ModuleTitle, c.Title AS CourseTile
 FROM CourseMeetings AS cm
 JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
@@ -177,8 +177,8 @@ JOIN Courses AS c ON cmod.CourseID = c.CourseID
 ORDER BY cm.Date
 GO;
 
---View: HarmonogramOfStudies
-CREATE VIEW HarmonogramOfStudies AS
+--View: STUDY_TIMETABLE
+CREATE VIEW STUDY_TIMETABLE AS
 SELECT c.Date, c.Duration, sub.Title AS SubjectTitle, s.Title AS StudiesTitle
 FROM Classes AS c
 JOIN Subjects AS sub ON c.SubjectID = sub.SubjectID
@@ -186,8 +186,8 @@ JOIN Studies AS s On c.StudyID = s.StudyID
 ORDER BY c.Date
 GO;
 
---View: HarmonogramOfAll
-CREATE VIEW HarmonografOfAll AS
+--View: ALL_EVENTS_TIMETABLE
+CREATE VIEW ALL_EVENTS_TIMETABLE AS
 SELECT Date AS Date, Duration AS Duration, Title AS Title, NULL AS SuperiorTitle
 FROM Webinars
 UNION
@@ -201,4 +201,146 @@ FROM Classes AS c
 JOIN Subjects AS sub ON c.SubjectID = sub.SubjectID
 JOIN Studies AS s On c.StudyID = s.StudyID
 ORDER BY Date
+GO;
+
+-- View: LIST_OF_DEBTORS
+CREATE VIEW LIST_OF_DEBTORS AS
+SELECT DISTINCT
+    u.UserID AS StudentID,
+    u.FirstName,
+    u.LastName,
+    u.Email,
+    u.Phone
+FROM Users u
+WHERE u.UserID NOT IN (
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN Orders o ON u.UserID = o.UserID
+    JOIN WebinarOrders wo ON o.OrderID = wo.OrderID
+    JOIN Courses c ON wo.WebinarID = c.CourseID
+    WHERE o.OrderDate < c.BeginDate
+
+    UNION
+
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN Orders o ON u.UserID = o.UserID
+    JOIN CourseOrders co ON o.OrderID = co.OrderID
+    JOIN Courses c ON co.CourseID = c.CourseID
+    WHERE o.OrderDate < DATEADD(DAY, -3,
+        (SELECT MIN(cm.Date)
+         FROM CourseMeetings cm
+         WHERE cm.ModuleID = c.CourseID))
+
+    UNION
+
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN Orders o ON u.UserID = o.UserID
+    JOIN StudyOrders so ON o.OrderID = so.OrderID
+    JOIN StudyMeetings sm ON sm.StudyID = so.StudyID
+    WHERE o.OrderDate < DATEADD(DAY, -3,
+        (SELECT MIN(sm.BeginDate)
+         FROM StudyMeetings sm
+         WHERE sm.StudyID = so.StudyID))
+
+    UNION
+
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN Orders o ON u.UserID = o.UserID
+    JOIN StudyMeetingOrders smo ON o.OrderID = smo.OrderID
+    JOIN CourseMeetings cm ON smo.MeetingID = cm.MeetingID
+    WHERE o.OrderDate < DATEADD(DAY, -3,
+        (SELECT cm.Date
+         FROM CourseMeetings cm
+         WHERE cm.MeetingID = smo.MeetingID))
+)
+AND u.UserID IN (
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN WebinarOrders wo ON u.UserID = wo.OrderID
+    UNION
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN CourseOrders co ON u.UserID = co.OrderID
+    UNION
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN StudyOrders so ON u.UserID = so.OrderID
+    UNION
+    SELECT DISTINCT u.UserID
+    FROM Users u
+    JOIN StudyMeetingOrders smo ON u.UserID = smo.OrderID
+);
+GO;
+
+-- View: STUDENTS_REGISTERED_FOR_COLLIDING_FUTURE_EVENTS_LIST
+CREATE VIEW STUDENTS_REGISTERED_FOR_COLLIDING_FUTURE_EVENTS_LIST AS
+SELECT DISTINCT
+    u.UserID AS StudentID,
+    u.FirstName,
+    u.LastName
+FROM Users AS u
+    JOIN Orders o ON o.UserID = u.UserID
+    JOIN WebinarOrders AS wo ON o.OrderID = wo.OrderID
+    JOIN Webinars AS w ON wo.WebinarID = w.WebinarID
+    JOIN Webinars AS w2 ON w.WebinarID <> w2.WebinarID
+    AND ((CASE WHEN w2.Date > w.Date THEN w2.Date ELSE w.Date END) <
+        (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w2.Duration), w2.Date) <
+                      DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date)
+              THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w2.Duration), w2.Date)
+              ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date) END))
+
+    JOIN CourseOrders AS co ON o.OrderID = co.OrderID
+    JOIN Courses AS c ON co.CourseID = c.CourseID
+    JOIN CourseModules cm ON cm.CourseID = c.CourseID
+    JOIN CourseMeetings cms ON cm.ModuleID = cms.ModuleID
+    JOIN CourseMeetings AS cms2 ON cms.MeetingID <> cms2.MeetingID
+    AND ((CASE WHEN cms2.Date > cms.Date THEN cms2.Date ELSE cms.Date END) <
+        (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms2.Duration), cms2.Date) <
+                      DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date)
+              THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms2.Duration), cms2.Date)
+              ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date) END))
+
+    JOIN StudyMeetingOrders AS smo ON o.OrderID = smo.OrderID
+    JOIN StudyMeetings AS sm ON smo.MeetingID = sm.MeetingID
+    JOIN Classes AS cl ON cl.MeetingID = sm.MeetingID
+    JOIN Classes as cl2 ON cl.MeetingID <> cl2.MeetingID
+    AND ((CASE WHEN cl2.Date > cl.Date THEN cl2.Date ELSE cl.Date END) <
+        (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl2.Duration), cl2.Date) <
+                      DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date)
+              THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl2.Duration), cl2.Date)
+              ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date) END))
+WHERE EXISTS (
+    SELECT w.WebinarID
+    WHERE EXISTS (
+        SELECT c.CourseID
+        WHERE ((CASE WHEN cms.Date > w.Date THEN cms.Date ELSE w.Date END) <
+            (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date) <
+                          DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date)
+                  THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date)
+                  ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date) END))
+    )
+    UNION
+    SELECT w.WebinarID
+    WHERE EXISTS (
+        SELECT sm.MeetingID
+        WHERE ((CASE WHEN cl.Date > w.Date THEN cl.Date ELSE w.Date END) <
+            (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date) <
+                          DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date)
+                  THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date)
+                  ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', w.Duration), w.Date) END))
+    )
+    UNION
+    SELECT cm.ModuleID
+    WHERE EXISTS (
+        SELECT sm.MeetingID
+        WHERE ((CASE WHEN cl.Date > cms.Date THEN cl.Date ELSE cms.Date END) <
+            (CASE WHEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date) <
+                          DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date)
+                  THEN DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date)
+                  ELSE DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date) END))
+    )
+);
 GO;

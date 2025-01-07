@@ -433,6 +433,25 @@ END;
 
 GO
 
+CREATE PROCEDURE UpdateWebinarDate
+    @WebinarID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Webinars w
+                   WHERE w.WebinarID = @WebinarID)
+        THROW 50007, 'No webinar found for given ID.', 17;
+
+    UPDATE Webinars
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE WebinarID = @WebinarID;
+END;
+
+GO
+
 
 --COURSES
 
@@ -449,7 +468,7 @@ BEGIN
                             INNER JOIN Positions p ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @CoordinatorID
                      AND p.Name = 'Teacher')
-        THROW 50000, 'No teacher found for given ID.', 17;
+        THROW 50000, 'No teacher found for given ID.', 18;
 
     INSERT INTO Courses (CoordinatorID, Title, Description, Price, BeginDate, EndDate)
     VALUES (@CoordinatorID, @Title, @Description, @Price, @BeginDate, @EndDate);
@@ -467,7 +486,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Courses
                    WHERE CourseID = @CourseID)
-        THROW 50020, 'No course found for given ID.', 18;
+        THROW 50020, 'No course found for given ID.', 19;
 
     INSERT INTO CourseModules (CourseID, Title, Description, ModuleType)
     VALUES (@CourseID, @Title, @Description, @ModuleType);
@@ -490,14 +509,37 @@ BEGIN
         SET @Duration = '01:30:00'
 
     IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
-        THROW 50008, 'Invalid translator-language pair.', 19;
+        THROW 50008, 'Invalid translator-language pair.', 20;
 
     INSERT INTO CourseMeetings(ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
     VALUES (@ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
 END;
 
+GO
 
---Employees
+CREATE PROCEDURE UpdateCourseMeetingDate
+    @MeetingID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF @NewDuration IS NULL
+        SET @NewDuration = '01:30:00'
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings cm
+                   WHERE cm.MeetingID = @MeetingID)
+        THROW 50009, 'No course meeting found for given ID.', 21;
+
+    UPDATE CourseMeetings
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE MeetingID = @MeetingID;
+END;
+
+GO
+
+
+-- PEOPLE
 
 CREATE PROCEDURE AddEmployee
     @p_FirstName NVARCHAR(30),
@@ -515,13 +557,13 @@ BEGIN
     WHERE name = @p_PositionName;
 
     IF @v_PositionID IS NULL
-    BEGIN
-        THROW 50000, 'Stanowisko o podanej nazwie nie istnieje.', 1;
-    END;
+        THROW 50021, 'No position with given name', 22;
 
     INSERT INTO Employees (PositionID, Email, Password, FirstName, LastName, HireDate, Phone)
     VALUES (@v_PositionID, @p_Email, @p_Password, @p_FirstName, @p_LastName, GETDATE(), @p_Phone);
 END;
+
+GO
 
 CREATE PROCEDURE ModifyEmployee
     @p_EmployeeID INT,
@@ -533,16 +575,14 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Employees as e
                    WHERE e.EmployeeID = @p_EmployeeID)
-    BEGIN
-        THROW 50002, 'Nie znaleziono pracownika o tym ID', 4;
-    END
+        THROW 50022, 'No employee found for given ID.', 23;
 
     UPDATE Employees
     SET PositionName=@p_PositionName, Phone = @p_Phone
     WHERE EmployeeID = @p_EmployeeID
 END;
 
---Users
+GO
 
 CREATE PROCEDURE AddUser
     @p_FirstName NVARCHAR(30),
@@ -560,6 +600,8 @@ BEGIN
         VALUES (@p_Email, @p_Password, @p_FirstName, @p_LastName, @p_Address, @p_PostalCode, @p_City NVARCHAR(50), @p_Country, GETDATE(), @p_Phone);
 END;
 
+GO
+
 CREATE PROCEDURE ModifyUser
     @p_UserID INT,
     @p_Phone NVARCHAR(15)
@@ -569,16 +611,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Users as u
                    WHERE u.UserID = @p_UserID)
-    BEGIN
-        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
-    END
+        THROW 50023, 'No user found for given ID.', 24;
 
     UPDATE Employees
     SET Phone = @p_Phone
     WHERE EmployeeID = @p_EmployeeID
 END;
 
---Orders
+GO
+
+
+-- ORDERS
 
 CREATE PROCEDURE AddOrder
     @p_UserID INT,
@@ -590,14 +633,14 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Users as u
                    WHERE u.UserID = @p_UserID)
-    BEGIN
-        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
-    END
+        THROW 50023, 'No user found for given ID.', 25;
 
     INSERT INTO Orders (UserID, OrderDate, PaymentURL)
     VALUES (@p_UserID, @p_OrderDate, @p_PaymentURL)
 
 END;
+
+GO
 
 CREATE PROCEDURE ModifyOrder
     @p_OrderID INT,
@@ -608,22 +651,19 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Orders as o
                    WHERE o.OrderID = @p_OrderID)
-    BEGIN
-        THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
-    END
+        THROW 50024, 'No order found for given ID.', 26;
 
     IF NOT EXISTS (SELECT 1
                    FROM Users as u
                    WHERE u.UserID = @p_UserID)
-    BEGIN
-        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
-    END
+        THROW 50023, 'No user found for given ID.', 26;
+        
     UPDATE Orders
     SET PaymentURL = @p_PaymentURL
     WHERE OrderID = @p_OrderID;
 END;
 
---OrderDetails
+GO
 
 CREATE PROCEDURE AddOrderDetails
     @p_OrderID INT,
@@ -643,9 +683,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM Orders as o
                    WHERE o.OrderID = @p_OrderID)
-        BEGIN
-            THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 27;
 
         INSERT INTO WebinarOrders (OrderID, WebinarID, Price, PaymentDate)
         VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
@@ -656,9 +694,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM Orders as o
                    WHERE o.OrderID = @p_OrderID)
-        BEGIN
-            THROW 50001, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 27;
 
         INSERT INTO CourseOrders (OrderID, CourseID, PaymentInAdvance, FullPrice, PaymentDateInAdvance, PaymentDateFull)
         VALUES (@p_OrderID, @p_EntityID, @p_PaymentInAdvance, @p_FullPrice, @p_PaymentDateInAdvance, @p_PaymentDateFull);
@@ -669,9 +705,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM Orders as o
                    WHERE o.OrderID = @p_OrderID)
-        BEGIN
-            THROW 50002, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 27;
 
         INSERT INTO StudyOrders (OrderID, StudyID, Price, PaymentDate)
         VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
@@ -682,18 +716,16 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM Orders as o
                    WHERE o.OrderID = @p_OrderID)
-        BEGIN
-            THROW 50003, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 27;
 
         INSERT INTO StudyMeetingOrders (OrderID, MeetingID, Price, PaymentDate)
         VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
     END
     ELSE
-    BEGIN
-        THROW 50004, 'Zła nazwa modułu', 2;
-    END
+        THROW 50025, 'Invalid module name.', 27;
 END;
+
+GO
 
 CREATE PROCEDURE ModifyOrderDetails
     @p_OrderID INT,
@@ -713,9 +745,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM WebinarOrders as wo
                    WHERE wo.OrderID = @p_OrderID AND wo.WebinarID = @p_WebinarID)
-        BEGIN
-            THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 28;
 
         UPDATE WebinarOrders
         SET Price = @p_Price,
@@ -728,9 +758,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM CourseOrders as co
                    WHERE co.OrderID = @p_OrderID AND co.CourseID = @p_CourseID)
-        BEGIN
-            THROW 50001, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 28;
 
         UPDATE CourseOrders
         SET PaymentInAdvance =@p_PaymentInAdvance,
@@ -746,9 +774,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM StudyOrders as so
                    WHERE so.OrderID = @p_OrderID AND so.StudyID = @p_StudyID)
-        BEGIN
-            THROW 50002, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 28;
 
         UPDATE StudyOrders
         SET Price = @p_Price,
@@ -762,9 +788,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1
                    FROM StudyMeetingOrders as smo
                    WHERE smo.OrderID = @p_OrderID AND smo.MeetingID = @p_MeetingID)
-        BEGIN
-            THROW 50003, 'Nie znaleziono zamówienia o tym ID', 1;
-        END
+            THROW 50024, 'No order found for given ID.', 28;
 
         UPDATE StudyOrders
         SET Price = @p_Price,
@@ -773,13 +797,10 @@ BEGIN
 
     END
     ELSE
-    BEGIN
-        THROW 50004, 'Zła nazwa modułu', 2;
-    END
+        THROW 50025, 'Invalid module name.', 28;
 END;
 
-
---OneMeetingRegistration(if i think it i what it meant)
+GO
 
 CREATE PROCEDURE RegisterForOneStudyMeeting
     @UserID INT,
@@ -792,3 +813,5 @@ BEGIN
         VALUES ((SELECT ISNULL(MAX(OrderID), 0) + 1 FROM StudyMeetingOrders), @MeetingID, 0, NULL);
     END
 END;
+
+GO
