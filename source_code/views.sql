@@ -161,6 +161,48 @@ SELECT *, 'Classes' AS Type
 FROM CLASS_ATTENDANCE_REPORT
 GO;
 
+--View: WEBINAR_TIMETABLE
+CREATE VIEW WEBINAR_TIMETABLE AS
+SELECT Date, Duration, Title
+FROM Webinars
+ORDER BY Date
+GO;
+
+--View: COURSE_TIMETABLE
+CREATE VIEW COURSE_TIMETABLE AS
+SELECT cm.Date, cm.Duration, cm.Title AS MeetingTitle, cmod.Title AS ModuleTitle, c.Title AS CourseTile
+FROM CourseMeetings AS cm
+JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
+JOIN Courses AS c ON cmod.CourseID = c.CourseID
+ORDER BY cm.Date
+GO;
+
+--View: STUDY_TIMETABLE
+CREATE VIEW STUDY_TIMETABLE AS
+SELECT c.Date, c.Duration, sub.Title AS SubjectTitle, s.Title AS StudiesTitle
+FROM Classes AS c
+JOIN Subjects AS sub ON c.SubjectID = sub.SubjectID
+JOIN Studies AS s On c.StudyID = s.StudyID
+ORDER BY c.Date
+GO;
+
+--View: ALL_EVENTS_TIMETABLE
+CREATE VIEW ALL_EVENTS_TIMETABLE AS
+SELECT Date AS Date, Duration AS Duration, Title AS Title, NULL AS SuperiorTitle
+FROM Webinars
+UNION
+SELECT cm.Date AS Date, cm.Duration AS Duration, cm.Title AS Title, c.Title AS SuperiorTile
+FROM CourseMeetings AS cm
+JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
+JOIN Courses AS c ON cmod.CourseID = c.CourseID
+UNION
+SELECT c.Date AS Date, c.Duration AS Duration, sub.Title AS Title, s.Title AS SuperiorTitle
+FROM Classes AS c
+JOIN Subjects AS sub ON c.SubjectID = sub.SubjectID
+JOIN Studies AS s On c.StudyID = s.StudyID
+ORDER BY Date
+GO;
+
 -- View: LIST_OF_DEBTORS
 CREATE VIEW LIST_OF_DEBTORS AS
 SELECT DISTINCT
