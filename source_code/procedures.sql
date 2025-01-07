@@ -517,3 +517,53 @@ VALUES (@MeetingID, @ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @
 END;
 
 
+CREATE PROCEDURE UpdateWebinarDate
+    @WebinarID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Webinars w
+                   WHERE WebinarID = @WebinarID)
+    BEGIN
+        RAISERROR('Webinar o podanym ID nie istnieje.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE Webinars
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE WebinarID = @WebinarID;
+
+
+    PRINT 'Webinar data i czas trwania zostały pomyślnie zaktualizowane.';
+END;
+
+
+CREATE PROCEDURE UpdateCourseMeetingDate
+    @MeetingID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF @NewDuration IS NULL
+    BEGIN
+        SET @NewDuration = '01:30:00'
+    END
+
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings cm
+                   WHERE MeetingID = @MeetingID)
+    BEGIN
+        RAISERROR('Spotkanie o podanym ID nie istnieje.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE CourseMeetings
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE MeetingID = @MeetingID;
+
+    PRINT 'Data i czas trwania spotkania zostały pomyślnie zaktualizowane.';
+END;

@@ -238,7 +238,7 @@ AND u.UserID IN (
 CREATE VIEW STUDENTS_REGISTERED_FOR_COLLIDING_FUTURE_EVENTS_LIST AS
 SELECT DISTINCT
     u.UserID AS StudentID,
-    u.FirstName, 
+    u.FirstName,
     u.LastName
 FROM Users AS u
     JOIN Orders o ON o.UserID = u.UserID
