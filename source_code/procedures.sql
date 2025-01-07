@@ -433,6 +433,25 @@ END;
 
 GO
 
+CREATE PROCEDURE UpdateWebinarDate
+    @WebinarID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Webinars w
+                   WHERE w.WebinarID = @WebinarID)
+        THROW 50007, 'No webinar found for given ID.', 17;
+
+    UPDATE Webinars
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE WebinarID = @WebinarID;
+END;
+
+GO
+
 
 --COURSES
 
@@ -449,7 +468,7 @@ BEGIN
                             INNER JOIN Positions p ON e.PositionID = p.PositionID
                    WHERE EmployeeID = @CoordinatorID
                      AND p.Name = 'Teacher')
-        THROW 50000, 'No teacher found for given ID.', 17;
+        THROW 50000, 'No teacher found for given ID.', 18;
 
     INSERT INTO Courses (CoordinatorID, Title, Description, Price, BeginDate, EndDate)
     VALUES (@CoordinatorID, @Title, @Description, @Price, @BeginDate, @EndDate);
@@ -467,7 +486,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1
                    FROM Courses
                    WHERE CourseID = @CourseID)
-        THROW 50020, 'No course found for given ID.', 18;
+        THROW 50020, 'No course found for given ID.', 19;
 
     INSERT INTO CourseModules (CourseID, Title, Description, ModuleType)
     VALUES (@CourseID, @Title, @Description, @ModuleType);
@@ -490,8 +509,29 @@ BEGIN
         SET @Duration = '01:30:00'
 
     IF dbo.CheckTranslatorLanguage(@TranslatorID, @LanguageID) = CAST(0 AS bit)
-        THROW 50008, 'Invalid translator-language pair.', 19;
+        THROW 50008, 'Invalid translator-language pair.', 20;
 
     INSERT INTO CourseMeetings(ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
     VALUES (@ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
+END;
+
+GO
+
+CREATE PROCEDURE UpdateCourseMeetingDate
+    @MeetingID int,
+    @NewDate datetime,
+    @NewDuration time
+AS
+BEGIN
+    IF @NewDuration IS NULL
+        SET @NewDuration = '01:30:00'
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings cm
+                   WHERE cm.MeetingID = @MeetingID)
+        THROW 50009, 'No course meeting found for given ID.', 21;
+
+    UPDATE CourseMeetings
+    SET Date = @NewDate,
+        Duration = @NewDuration
+    WHERE MeetingID = @MeetingID;
 END;
