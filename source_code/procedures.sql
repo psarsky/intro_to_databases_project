@@ -495,3 +495,300 @@ BEGIN
     INSERT INTO CourseMeetings(ModuleID, TeacherID, LanguageID, TranslatorID, Title, Description, Date, Duration)
     VALUES (@ModuleID, @TeacherID, @LanguageID, @TranslatorID, @Title, @Description, @Date, @Duration)
 END;
+
+
+--Employees
+
+CREATE PROCEDURE AddEmployee
+    @p_FirstName NVARCHAR(30),
+    @p_LastName NVARCHAR(30),
+    @p_PositionName NVARCHAR(20),
+    @p_Email NVARCHAR(64),
+    @p_Password NVARCHAR(64),
+    @p_Phone NVARCHAR(15)
+AS
+BEGIN
+
+    DECLARE @v_PositionID INT;
+    SELECT @v_PositionID = PositionID
+    FROM Positions
+    WHERE name = @p_PositionName;
+
+    IF @v_PositionID IS NULL
+    BEGIN
+        THROW 50000, 'Stanowisko o podanej nazwie nie istnieje.', 1;
+    END;
+
+    INSERT INTO Employees (PositionID, Email, Password, FirstName, LastName, HireDate, Phone)
+    VALUES (@v_PositionID, @p_Email, @p_Password, @p_FirstName, @p_LastName, GETDATE(), @p_Phone);
+END;
+
+CREATE PROCEDURE ModifyEmployee
+    @p_EmployeeID INT,
+    @p_PositionName NVARCHAR(20),
+    @p_Phone NVARCHAR(15)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Employees as e
+                   WHERE e.EmployeeID = @p_EmployeeID)
+    BEGIN
+        THROW 50002, 'Nie znaleziono pracownika o tym ID', 4;
+    END
+
+    UPDATE Employees
+    SET PositionName=@p_PositionName, Phone = @p_Phone
+    WHERE EmployeeID = @p_EmployeeID
+END;
+
+--Users
+
+CREATE PROCEDURE AddUser
+    @p_FirstName NVARCHAR(30),
+    @p_LastName NVARCHAR(30),
+    @p_Email NVARCHAR(64),
+    @p_Password NVARCHAR(64),
+    @p_Phone NVARCHAR(15)
+    @p_Address NVARCHAR(64),
+    @p_PostalCode NVARCHAR(6),
+    @p_City NVARCHAR(50),
+    @p_Country NVARCHAR(20),
+AS
+BEGIN
+    INSERT INTO Users (Email, Password, FirstName, LastName, Address, PostalCode, City, Country, RegisterDate, Phone)
+        VALUES (@p_Email, @p_Password, @p_FirstName, @p_LastName, @p_Address, @p_PostalCode, @p_City NVARCHAR(50), @p_Country, GETDATE(), @p_Phone);
+END;
+
+CREATE PROCEDURE ModifyUser
+    @p_UserID INT,
+    @p_Phone NVARCHAR(15)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Users as u
+                   WHERE u.UserID = @p_UserID)
+    BEGIN
+        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
+    END
+
+    UPDATE Employees
+    SET Phone = @p_Phone
+    WHERE EmployeeID = @p_EmployeeID
+END;
+
+--Orders
+
+CREATE PROCEDURE AddOrder
+    @p_UserID INT,
+    @p_OrderDate DATETIME = GETDATE(),
+    @p_PaymentURL NVARCHAR(200)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Users as u
+                   WHERE u.UserID = @p_UserID)
+    BEGIN
+        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
+    END
+
+    INSERT INTO Orders (UserID, OrderDate, PaymentURL)
+    VALUES (@p_UserID, @p_OrderDate, @p_PaymentURL)
+
+END;
+
+CREATE PROCEDURE ModifyOrder
+    @p_OrderID INT,
+    @p_PaymentURL NVARCHAR(200)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+    BEGIN
+        THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
+    END
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Users as u
+                   WHERE u.UserID = @p_UserID)
+    BEGIN
+        THROW 50002, 'Nie znaleziono użytkownika o tym ID', 4;
+    END
+    UPDATE Orders
+    SET PaymentURL = @p_PaymentURL
+    WHERE OrderID = @p_OrderID;
+END;
+
+--OrderDetails
+
+CREATE PROCEDURE AddOrderDetails
+    @p_OrderID INT,
+    @p_DetailType NVARCHAR(50),
+    @p_EntityID INT,
+    @p_Price MONEY = NULL,
+    @p_PaymentDate DATETIME = NULL,
+    @p_PaymentInAdvance MONEY = NULL,
+    @p_FullPrice MONEY = NULL,
+    @p_PaymentDateInAdvance DATETIME = NULL,
+    @p_PaymentDateFull DATETIME = NULL
+AS
+BEGIN
+    IF @DetailType = 'Webinar'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+        BEGIN
+            THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        INSERT INTO WebinarOrders (OrderID, WebinarID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE IF @DetailType = 'Course'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+        BEGIN
+            THROW 50001, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        INSERT INTO CourseOrders (OrderID, CourseID, PaymentInAdvance, FullPrice, PaymentDateInAdvance, PaymentDateFull)
+        VALUES (@p_OrderID, @p_EntityID, @p_PaymentInAdvance, @p_FullPrice, @p_PaymentDateInAdvance, @p_PaymentDateFull);
+    END
+    ELSE IF @DetailType = 'Study'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+        BEGIN
+            THROW 50002, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        INSERT INTO StudyOrders (OrderID, StudyID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE IF @DetailType = 'StudyMeeting'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+        BEGIN
+            THROW 50003, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        INSERT INTO StudyMeetingOrders (OrderID, MeetingID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE
+    BEGIN
+        THROW 50004, 'Zła nazwa modułu', 2;
+    END
+END;
+
+CREATE PROCEDURE ModifyOrderDetails
+    @p_OrderID INT,
+    @p_DetailType NVARCHAR(50),
+    @p_EntityID INT,
+    @p_Price MONEY = NULL,
+    @p_PaymentDate DATETIME = NULL,
+    @p_PaymentInAdvance MONEY = NULL,
+    @p_FullPrice MONEY = NULL,
+    @p_PaymentDateInAdvance DATETIME = NULL,
+    @p_PaymentDateFull DATETIME = NULL
+AS
+BEGIN
+    IF @DetailType = 'Webinar'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM WebinarOrders as wo
+                   WHERE wo.OrderID = @p_OrderID AND wo.WebinarID = @p_WebinarID)
+        BEGIN
+            THROW 50000, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        UPDATE WebinarOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND WebinarID = @p_WebinarID;
+    END
+    ELSE IF @DetailType = 'Course'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM CourseOrders as co
+                   WHERE co.OrderID = @p_OrderID AND co.CourseID = @p_CourseID)
+        BEGIN
+            THROW 50001, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        UPDATE CourseOrders
+        SET PaymentInAdvance =@p_PaymentInAdvance,
+            FullPrice = @p_FullPrice,
+            PaymentDateInAdvance = @p_PaymentDateInAdvance,
+            PaymentDateFull = @p_PaymentDateFull
+        WHERE OrderID = @p_OrderID AND CourseID = @p_CourseID
+        
+    END
+    ELSE IF @DetailType = 'Study'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM StudyOrders as so
+                   WHERE so.OrderID = @p_OrderID AND so.StudyID = @p_StudyID)
+        BEGIN
+            THROW 50002, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        UPDATE StudyOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND StudyID = @p_StudyID;
+
+    END
+    ELSE IF @DetailType = 'StudyMeeting'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM StudyMeetingOrders as smo
+                   WHERE smo.OrderID = @p_OrderID AND smo.MeetingID = @p_MeetingID)
+        BEGIN
+            THROW 50003, 'Nie znaleziono zamówienia o tym ID', 1;
+        END
+
+        UPDATE StudyOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND MeetingID = @p_MeetingID;
+
+    END
+    ELSE
+    BEGIN
+        THROW 50004, 'Zła nazwa modułu', 2;
+    END
+END;
+
+
+--OneMeetingRegistration(if i think it i what it meant)
+
+CREATE PROCEDURE RegisterForOneStudyMeeting
+    @UserID INT,
+    @MeetingID INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM StudyMeetingOrders WHERE MeetingID = @MeetingID AND UserID = @UserID)
+    BEGIN
+        INSERT INTO StudyMeetingOrders (OrderID, MeetingID, Price, PaymentDate)
+        VALUES ((SELECT ISNULL(MAX(OrderID), 0) + 1 FROM StudyMeetingOrders), @MeetingID, 0, NULL);
+    END
+END;
