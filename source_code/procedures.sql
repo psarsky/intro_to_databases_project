@@ -724,9 +724,16 @@ BEGIN
     FROM Positions
     WHERE name = @p_PositionName;
 
+    DECLARE @v_PositionID INT;
+    SELECT @v_PositionID = PositionID
+    FROM Positions
+    WHERE Name = @p_PositionName;
+
     UPDATE Employees
+
     SET PositionID=@v_PositionID,
         Phone     = @p_Phone
+     
     WHERE EmployeeID = @p_EmployeeID
 END;
 
@@ -752,7 +759,25 @@ END;
 
 GO
 
--- ModifyUser
+
+CREATE PROCEDURE ModifyUser
+    @p_UserID INT,
+    @p_Phone NVARCHAR(15)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Users as u
+                   WHERE u.UserID = @p_UserID)
+        THROW 50023, 'No user found for given ID.', 24;
+
+    UPDATE Users
+    SET Phone = @p_Phone
+    WHERE UserID = @p_UserID
+END;
+
+GO
+
 
 
 -- ORDERS
@@ -775,10 +800,176 @@ END;
 
 GO
 
--- ModifyOrder
+CREATE PROCEDURE ModifyOrder
+    @p_OrderID INT,
+	@p_UserID INT,
+    @p_PaymentURL NVARCHAR(200)
+AS
+BEGIN
 
--- AddOrderDetails
+    IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+        THROW 50024, 'No order found for given ID.', 26;
 
--- ModifyOrderDetails
+    IF NOT EXISTS (SELECT 1
+                   FROM Users as u
+                   WHERE u.UserID = @p_UserID)
+        THROW 50023, 'No user found for given ID.', 26;
+        
+    UPDATE Orders
+    SET PaymentURL = @p_PaymentURL
+    WHERE OrderID = @p_OrderID;
+END;
 
--- RegisterForOneStudyMeeting
+GO
+
+CREATE PROCEDURE AddOrderDetails
+    @p_OrderID INT,
+    @p_DetailType NVARCHAR(50),
+    @p_EntityID INT,
+    @p_Price MONEY = NULL,
+    @p_PaymentDate DATETIME = NULL,
+    @p_PaymentInAdvance MONEY = NULL,
+    @p_FullPrice MONEY = NULL,
+    @p_PaymentDateInAdvance DATETIME = NULL,
+    @p_PaymentDateFull DATETIME = NULL
+AS
+BEGIN
+    IF @p_DetailType = 'Webinar'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+            THROW 50024, 'No order found for given ID.', 27;
+
+        INSERT INTO WebinarOrders (OrderID, WebinarID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE IF @p_DetailType = 'Course'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+            THROW 50024, 'No order found for given ID.', 27;
+
+        INSERT INTO CourseOrders (OrderID, CourseID, PaymentInAdvance, FullPrice, PaymentDateInAdvance, PaymentDateFull)
+        VALUES (@p_OrderID, @p_EntityID, @p_PaymentInAdvance, @p_FullPrice, @p_PaymentDateInAdvance, @p_PaymentDateFull);
+    END
+    ELSE IF @p_DetailType = 'Study'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+            THROW 50024, 'No order found for given ID.', 27;
+
+        INSERT INTO StudyOrders (OrderID, StudyID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE IF @p_DetailType = 'StudyMeeting'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM Orders as o
+                   WHERE o.OrderID = @p_OrderID)
+            THROW 50024, 'No order found for given ID.', 27;
+
+        INSERT INTO StudyMeetingOrders (OrderID, MeetingID, Price, PaymentDate)
+        VALUES (@p_OrderID, @p_EntityID, @p_Price, @p_PaymentDate);
+    END
+    ELSE
+        THROW 50025, 'Invalid module name.', 27;
+END;
+
+GO
+
+CREATE PROCEDURE ModifyOrderDetails
+    @p_OrderID INT,
+    @p_DetailType NVARCHAR(50),
+    @p_EntityID INT,
+    @p_Price MONEY = NULL,
+    @p_PaymentDate DATETIME = NULL,
+    @p_PaymentInAdvance MONEY = NULL,
+    @p_FullPrice MONEY = NULL,
+    @p_PaymentDateInAdvance DATETIME = NULL,
+    @p_PaymentDateFull DATETIME = NULL
+AS
+BEGIN
+    IF @p_DetailType = 'Webinar'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM WebinarOrders as wo
+                   WHERE wo.OrderID = @p_OrderID AND wo.WebinarID = @p_EntityID)
+            THROW 50024, 'No order found for given ID.', 28;
+
+        UPDATE WebinarOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND WebinarID = @p_EntityID;
+    END
+    ELSE IF @p_DetailType = 'Course'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM CourseOrders as co
+                   WHERE co.OrderID = @p_OrderID AND co.CourseID = @p_EntityID)
+            THROW 50024, 'No order found for given ID.', 28;
+
+        UPDATE CourseOrders
+        SET PaymentInAdvance =@p_PaymentInAdvance,
+            FullPrice = @p_FullPrice,
+            PaymentDateInAdvance = @p_PaymentDateInAdvance,
+            PaymentDateFull = @p_PaymentDateFull
+        WHERE OrderID = @p_OrderID AND CourseID = @p_EntityID
+        
+    END
+    ELSE IF @p_DetailType = 'Study'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM StudyOrders as so
+                   WHERE so.OrderID = @p_OrderID AND so.StudyID = @p_EntityID)
+            THROW 50024, 'No order found for given ID.', 28;
+
+        UPDATE StudyOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND StudyID = @p_EntityID;
+
+    END
+    ELSE IF @p_DetailType = 'StudyMeeting'
+    BEGIN
+
+        IF NOT EXISTS (SELECT 1
+                   FROM StudyMeetingOrders as smo
+                   WHERE smo.OrderID = @p_OrderID AND smo.MeetingID = @p_EntityID)
+            THROW 50024, 'No order found for given ID.', 28;
+
+        UPDATE StudyOrders
+        SET Price = @p_Price,
+            PaymentDate = @p_PaymentDate
+        WHERE OrderID = @p_OrderID AND MeetingID = @p_EntityID;
+
+    END
+    ELSE
+        THROW 50025, 'Invalid module name.', 28;
+END;
+
+GO
+
+CREATE PROCEDURE RegisterForOneStudyMeeting
+    @UserID INT,
+    @OrderID INT,
+    @MeetingID INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM StudyMeetingOrders WHERE MeetingID = @MeetingID AND UserID = @UserID)
+    BEGIN
+        INSERT INTO StudyMeetingOrders (OrderID, MeetingID, Price, PaymentDate)
+        VALUES (@OrderID, @MeetingID, (SELECT Price*1.2 FROM StudyMeetings WHERE MeetingID = @MeetingID, NULL);
+    END
+END;
