@@ -1,5 +1,15 @@
 -- PEOPLE
 
+-- Table: CountriesCities
+CREATE TABLE CountriesCities
+(
+    CCID    int          NOT NULL IDENTITY,
+    City    nvarchar(50) NOT NULL,
+    Country nvarchar(50) NOT NULL,
+    CONSTRAINT unique_combinations UNIQUE (City, Country),
+    CONSTRAINT CountriesCities_pk PRIMARY KEY (CCID)
+);
+
 -- Table: Users
 CREATE TABLE Users
 (
@@ -9,16 +19,15 @@ CREATE TABLE Users
     FirstName    nvarchar(30) NOT NULL,
     LastName     nvarchar(30) NOT NULL,
     Address      nvarchar(64) NOT NULL,
-    PostalCode   nvarchar(6)  NOT NULL,
+    PostalCode   nvarchar(10) NOT NULL,
     City         nvarchar(50) NOT NULL,
-    Country      nvarchar(20) NOT NULL,
+    Region       nvarchar(50) NOT NULL,
+    Country      nvarchar(50) NOT NULL,
     RegisterDate datetime     NOT NULL CHECK (RegisterDate >= '01-01-1900'),
     Phone        nvarchar(15) NULL,
     CONSTRAINT Users_unique_email UNIQUE (Email),
-    CONSTRAINT Users_phone_check CHECK (Phone IS NULL OR
-                                        ISNUMERIC(Phone) = 1 OR
-                                        LEFT(Phone, 1) = '+' AND
-                                        ISNUMERIC(SUBSTRING(Phone, 2, LEN(Phone))) = 1),
+    CONSTRAINT Users_phone_check CHECK (Phone IS NULL OR ISNUMERIC(Phone) = 1 OR
+                                        LEFT(Phone, 1) = '+' AND ISNUMERIC(SUBSTRING(Phone, 2, LEN(Phone))) = 1),
     CONSTRAINT Users_pk PRIMARY KEY (UserID)
 );
 
@@ -235,10 +244,11 @@ CREATE TABLE SubjectGrades
 -- Table: Internships
 CREATE TABLE Internships
 (
-    InternshipID int      NOT NULL IDENTITY,
-    StudyID      int      NOT NULL,
-    TeacherID    int      NOT NULL,
-    StartDate    datetime NOT NULL CHECK (StartDate >= '01-01-1900'),
+    InternshipID int           NOT NULL IDENTITY,
+    StudyID      int           NOT NULL,
+    TeacherID    int           NOT NULL,
+    Title        nvarchar(100) NOT NULL,
+    StartDate    datetime      NOT NULL CHECK (StartDate >= '01-01-1900'),
     CONSTRAINT Internships_pk PRIMARY KEY (InternshipID)
 );
 

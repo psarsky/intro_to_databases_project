@@ -88,6 +88,7 @@ GO
 
 CREATE PROCEDURE AddInternship @StudyID int,
                                @TeacherID int,
+                               @Title nvarchar(100),
                                @StartDate datetime
 AS
 BEGIN
@@ -103,8 +104,8 @@ BEGIN
                      AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 4;
 
-    INSERT INTO Internships(StudyID, TeacherID, StartDate)
-    VALUES (@StudyID, @TeacherID, @StartDate)
+    INSERT INTO Internships(StudyID, TeacherID, Title, StartDate)
+    VALUES (@StudyID, @TeacherID, @Title, @StartDate)
 END
 
 GO
@@ -123,10 +124,42 @@ BEGIN
     WHERE InternshipID = @InternshipID
 END
 
+GO
 
---MEETINGS
+CREATE PROCEDURE AddStudyGrade @UserID int,
+                               @StudyID int
+AS
+BEGIN
+    DECLARE @Result real
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Users AS u
+                   WHERE u.UserID = @UserID)
+        THROW 50023, 'No user found for given ID.', 29;
+    IF NOT EXISTS (SELECT 1
+                   FROM Studies s
+                   WHERE s.StudyID = @StudyID)
+        THROW 50002, 'No studies found for given ID.', 29;
+    IF NOT EXISTS (SELECT 1
+                   FROM Studies s
+                            INNER JOIN StudentLists sl
+                                       ON s.StudyID = sl.StudyID
+                   WHERE sl.UserID = @UserID)
+        THROW 50026, 'The given student is not a member of the given studies.', 29;
+
+    SET @Result = (SELECT AVG(sg.Grade)
+                   FROM SubjectGrades sg
+                   WHERE sg.UserID = @UserID
+                     AND sg.StudyID = @StudyID)
+
+    INSERT INTO StudyGrades (StudyID, UserID, Grade)
+    VALUES (@StudyID, @UserID, @Result)
+END
 
 GO
+
+
+--MEETINGS
 
 CREATE PROCEDURE AddStudyMeeting @StudyID int,
                                  @Title nvarchar(100),
@@ -433,10 +466,9 @@ END;
 
 GO
 
-CREATE PROCEDURE UpdateWebinarDate
-    @WebinarID int,
-    @NewDate datetime,
-    @NewDuration time
+CREATE PROCEDURE UpdateWebinarDate @WebinarID int,
+                                   @NewDate datetime,
+                                   @NewDuration time
 AS
 BEGIN
     IF NOT EXISTS (SELECT 1
@@ -445,7 +477,7 @@ BEGIN
         THROW 50007, 'No webinar found for given ID.', 17;
 
     UPDATE Webinars
-    SET Date = @NewDate,
+    SET Date     = @NewDate,
         Duration = @NewDuration
     WHERE WebinarID = @WebinarID;
 END;
@@ -517,10 +549,9 @@ END;
 
 GO
 
-CREATE PROCEDURE UpdateCourseMeetingDate
-    @MeetingID int,
-    @NewDate datetime,
-    @NewDuration time
+CREATE PROCEDURE UpdateCourseMeetingDate @MeetingID int,
+                                         @NewDate datetime,
+                                         @NewDuration time
 AS
 BEGIN
     IF @NewDuration IS NULL
@@ -531,23 +562,135 @@ BEGIN
         THROW 50009, 'No course meeting found for given ID.', 21;
 
     UPDATE CourseMeetings
-    SET Date = @NewDate,
+    SET Date     = @NewDate,
         Duration = @NewDuration
     WHERE MeetingID = @MeetingID;
 END;
 
 GO
 
+CREATE PROCEDURE AssignStationaryCourseMeeting @MeetingID int,
+                                               @ReservationID int
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings c
+                   WHERE c.MeetingID = @MeetingID)
+        THROW 50010, 'No meeting found for given ID.', 31;
+    IF NOT EXISTS (SELECT 1
+                   FROM Reservations r
+                   WHERE r.ReservationID = @ReservationID)
+        THROW 50013, 'No reservation found for given ID.', 9;
+
+    INSERT INTO StationaryCourseMeetings(MeetingID, ReservationID)
+    VALUES (@MeetingID, @ReservationID)
+END
+
+GO
+
+CREATE PROCEDURE AssignAsynchronousCourseMeeting @MeetingID int,
+                                                 @VideoLink nvarchar(100)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings c
+                   WHERE c.MeetingID = @MeetingID)
+        THROW 50010, 'No meeting found for given ID.', 10;
+
+    INSERT INTO OnlineAsynchronousCourseMeetings(MeetingID, VideoLink)
+    VALUES (@MeetingID, @VideoLink)
+END
+
+GO
+
+CREATE PROCEDURE AssignSynchronousCourseMeeting @MeetingID int,
+                                                @VideoLink nvarchar(100),
+                                                @MeetingLink nvarchar(100)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM CourseMeetings c
+                   WHERE c.MeetingID = @MeetingID)
+        THROW 50010, 'No meeting found for given ID.', 11;
+
+    INSERT INTO OnlineSynchronousCourseMeetings(MeetingID, VideoLink, MeetingLink)
+    VALUES (@MeetingID, @VideoLink, @MeetingLink)
+END
+
+GO
+
+CREATE PROCEDURE AddMeetingAndAssign @ModuleID int,
+                                     @TeacherID int,
+                                     @LanguageID int,
+                                     @TranslatorID int,
+                                     @Title nvarchar(100),
+                                     @Description nvarchar(max),
+                                     @Date datetime,
+                                     @Duration time,
+                                     @Type nvarchar(12),
+                                     @ReservationID int,
+                                     @VideoLink nvarchar(100),
+                                     @MeetingLink nvarchar(100)
+AS
+BEGIN
+    DECLARE @MeetingID int
+    IF @Type = 'stationary'
+        BEGIN
+            IF @ReservationID IS NULL
+                THROW 50014, 'Provide reservation ID for a stationary Meeting.', 12;
+            IF @VideoLink IS NOT NULL
+                THROW 50015, 'Cannot assign a video link to this Meeting.', 12;
+            IF @MeetingLink IS NOT NULL
+                THROW 50016, 'Cannot assign a meeting link to this Meeting.', 12;
+        END
+    IF @Type = 'asynchronous'
+        BEGIN
+            IF @ReservationID IS NOT NULL
+                THROW 50017, 'Cannot assign a reservation ID to this Meeting.', 12;
+            IF @VideoLink IS NULL
+                THROW 50018, 'Provide a video link.', 12;
+            IF @MeetingLink IS NOT NULL
+                THROW 50016, 'Cannot assign a meeting link to this Meeting.', 12;
+        END
+    IF @Type = 'synchronous'
+        BEGIN
+            IF @ReservationID IS NOT NULL
+                THROW 50017, 'Cannot assign a reservation ID to this Meeting.', 12;
+            IF @VideoLink IS NULL
+                THROW 50018, 'Provide a video link.', 12;
+            IF @MeetingLink IS NULL
+                THROW 50019, 'Provide a meeting link.', 12;
+        END
+    EXEC AddCourseMeeting
+         @ModuleID,
+         @TeacherID,
+         @LanguageID,
+         @TranslatorID,
+         @Title,
+         @Description,
+         @Date,
+         @Duration
+    SET @MeetingID = (SELECT TOP 1 c.MeetingID
+                      FROM CourseMeetings c
+                      ORDER BY c.MeetingID DESC)
+    IF @Type = 'stationary'
+        EXEC AssignStationaryCourseMeeting @MeetingID, @ReservationID
+    IF @Type = 'asynchronous'
+        EXEC AssignAsynchronousCourseMeeting @MeetingID, @VideoLink
+    IF @Type = 'synchronous'
+        EXEC AssignSynchronousCourseMeeting @MeetingID, @VideoLink, @MeetingLink
+END
+
+GO
 
 -- PEOPLE
 
-CREATE PROCEDURE AddEmployee
-    @p_FirstName NVARCHAR(30),
-    @p_LastName NVARCHAR(30),
-    @p_PositionName NVARCHAR(20),
-    @p_Email NVARCHAR(64),
-    @p_Password NVARCHAR(64),
-    @p_Phone NVARCHAR(15)
+CREATE PROCEDURE AddEmployee @p_FirstName NVARCHAR(30),
+                             @p_LastName NVARCHAR(30),
+                             @p_PositionName NVARCHAR(20),
+                             @p_Email NVARCHAR(64),
+                             @p_Password NVARCHAR(64),
+                             @p_Phone NVARCHAR(15)
 AS
 BEGIN
 
@@ -565,17 +708,21 @@ END;
 
 GO
 
-CREATE PROCEDURE ModifyEmployee
-    @p_EmployeeID INT,
-    @p_PositionName NVARCHAR(20),
-    @p_Phone NVARCHAR(15)
+CREATE PROCEDURE ModifyEmployee @p_EmployeeID INT,
+                                @p_PositionName NVARCHAR(20),
+                                @p_Phone NVARCHAR(15)
 AS
 BEGIN
 
     IF NOT EXISTS (SELECT 1
-                   FROM Employees as e
+                   FROM Employees AS e
                    WHERE e.EmployeeID = @p_EmployeeID)
-        THROW 50022, 'No employee found for given ID.', 23;
+        THROW 50027, 'No employee found for given ID.', 30;
+
+    DECLARE @v_PositionID INT;
+    SELECT @v_PositionID = PositionID
+    FROM Positions
+    WHERE name = @p_PositionName;
 
     DECLARE @v_PositionID INT;
     SELECT @v_PositionID = PositionID
@@ -583,29 +730,35 @@ BEGIN
     WHERE Name = @p_PositionName;
 
     UPDATE Employees
-    SET PositionID=@v_PositionID, Phone = @p_Phone
+
+    SET PositionID=@v_PositionID,
+        Phone     = @p_Phone
+     
     WHERE EmployeeID = @p_EmployeeID
 END;
 
 GO
 
-CREATE PROCEDURE AddUser
-    @p_FirstName NVARCHAR(30),
-    @p_LastName NVARCHAR(30),
-    @p_Email NVARCHAR(64),
-    @p_Password NVARCHAR(64),
-    @p_Phone NVARCHAR(15)
-    @p_Address NVARCHAR(64),
-    @p_PostalCode NVARCHAR(6),
-    @p_City NVARCHAR(50),
-    @p_Country NVARCHAR(20),
+CREATE PROCEDURE AddUser @p_FirstName NVARCHAR(30),
+                         @p_LastName NVARCHAR(30),
+                         @p_Email NVARCHAR(64),
+                         @p_Password NVARCHAR(64),
+                         @p_Phone NVARCHAR(15),
+                         @p_Address NVARCHAR(64),
+                         @p_PostalCode NVARCHAR(6),
+                         @p_City NVARCHAR(50),
+                         @p_Region NVARCHAR(50),
+                         @p_Country NVARCHAR(50)
 AS
 BEGIN
-    INSERT INTO Users (Email, Password, FirstName, LastName, Address, PostalCode, City, Country, RegisterDate, Phone)
-        VALUES (@p_Email, @p_Password, @p_FirstName, @p_LastName, @p_Address, @p_PostalCode, @p_City, @p_Country, GETDATE(), @p_Phone);
+    INSERT INTO Users (Email, Password, FirstName, LastName, Address, PostalCode, City, Region, Country, RegisterDate,
+                       Phone)
+    VALUES (@p_Email, @p_Password, @p_FirstName, @p_LastName, @p_Address, @p_PostalCode, @p_City, @p_Region, @p_Country,
+            GETDATE(), @p_Phone);
 END;
 
 GO
+
 
 CREATE PROCEDURE ModifyUser
     @p_UserID INT,
@@ -626,17 +779,17 @@ END;
 GO
 
 
+
 -- ORDERS
 
-CREATE PROCEDURE AddOrder
-    @p_UserID INT,
-    @p_OrderDate DATETIME = GETDATE(),
-    @p_PaymentURL NVARCHAR(200)
+CREATE PROCEDURE AddOrder @p_UserID INT,
+                          @p_OrderDate DATETIME,
+                          @p_PaymentURL NVARCHAR(200)
 AS
 BEGIN
 
     IF NOT EXISTS (SELECT 1
-                   FROM Users as u
+                   FROM Users AS u
                    WHERE u.UserID = @p_UserID)
         THROW 50023, 'No user found for given ID.', 25;
 
@@ -820,5 +973,3 @@ BEGIN
         VALUES (@OrderID, @MeetingID, (SELECT Price*1.2 FROM StudyMeetings WHERE MeetingID = @MeetingID, NULL);
     END
 END;
-
-GO
