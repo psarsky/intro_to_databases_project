@@ -274,6 +274,11 @@ ALTER TABLE TranslatorLanguages
         FOREIGN KEY (LanguageID)
             REFERENCES Languages (LanguageID);
 
+-- Reference: Users_CountriesCities (table: Users)
+ALTER TABLE Users ADD CONSTRAINT Users_CountriesCities
+    FOREIGN KEY (City,Country)
+        REFERENCES CountriesCities (City,Country);
+
 -- Reference: WebinarOrders_Orders (table: WebinarOrders)
 ALTER TABLE WebinarOrders
     ADD CONSTRAINT WebinarOrders_Orders
