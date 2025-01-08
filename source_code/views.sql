@@ -2,7 +2,7 @@
 CREATE VIEW WEBINARS_FINANCIAL_REPORT
 AS
 SELECT w.WebinarID                        AS ID,
-       w.Title                            AS Name,
+       w.Name                             AS Name,
        (SELECT ISNULL(SUM(wo.Price), 0)
         FROM WebinarOrders wo
         WHERE wo.WebinarID = w.WebinarID
@@ -14,7 +14,7 @@ GO;
 CREATE VIEW COURSES_FINANCIAL_REPORT
 AS
 SELECT c.CourseID                                  AS ID,
-       c.Title                                     AS Name,
+       c.Name                                      AS Name,
        (SELECT ISNULL(SUM(co.FullPrice), 0)
         FROM CourseOrders co
         WHERE co.CourseID = c.CourseID
@@ -31,7 +31,7 @@ GO;
 CREATE VIEW STUDIES_FINANCIAL_REPORT
 AS
 SELECT s.StudyID                           AS ID,
-       s.Title                             AS Name,
+       s.Name                              AS Name,
        (SELECT ISNULL(SUM(so.Price), 0)
         FROM StudyOrders so
         WHERE so.StudyID = s.StudyID
@@ -61,21 +61,21 @@ GO;
 CREATE VIEW FUTURE_WEBINARS_REPORT
 AS
 SELECT w.WebinarID AS ID,
-       w.Title     AS Name,
+       w.Name      AS Name,
        COUNT(*)    AS Participants
 FROM Webinars w
          INNER JOIN WebinarOrders wo
                     ON w.WebinarID = wo.WebinarID
 WHERE w.Date > GETDATE()
   AND wo.PaymentDate IS NOT NULL
-GROUP BY w.WebinarID, w.Title
+GROUP BY w.WebinarID, w.Name
 GO;
 
 -- View: FUTURE_COURSE_MEETINGS_REPORT
 CREATE VIEW FUTURE_COURSE_MEETINGS_REPORT
 AS
 SELECT cm.MeetingID AS ID,
-       cm.Title     AS Name,
+       cm.Name      AS Name,
        COUNT(*)     AS Participants
 FROM CourseMeetings cm
          INNER JOIN CourseModules cmod
@@ -86,21 +86,21 @@ FROM CourseMeetings cm
                     ON c.CourseID = co.CourseID
 WHERE cm.Date > GETDATE()
   AND (co.PaymentDateFull IS NOT NULL OR co.PaymentDateInAdvance IS NOT NULL)
-GROUP BY cm.MeetingID, cm.Title
+GROUP BY cm.MeetingID, cm.Name
 GO;
 
 -- View: FUTURE_STUDY_MEETINGS_REPORT
 CREATE VIEW FUTURE_STUDY_MEETINGS_REPORT
 AS
 SELECT sm.MeetingID AS ID,
-       sm.Title     AS Name,
+       sm.Name      AS Name,
        COUNT(*)     AS Participants
 FROM StudyMeetings sm
          INNER JOIN StudyMeetingOrders smo
                     ON sm.MeetingID = smo.MeetingID
 WHERE sm.BeginDate > GETDATE()
   AND smo.PaymentDate IS NOT NULL
-GROUP BY sm.MeetingID, sm.Title
+GROUP BY sm.MeetingID, sm.Name
 GO;
 
 -- View: FUTURE_EVENTS_REPORT
@@ -129,10 +129,10 @@ GO;
 
 -- View: COURSE_MEETING_ATTENDANCE_REPORT
 CREATE VIEW COURSE_MEETING_ATTENDANCE_REPORT AS
-SELECT MeetingID                                                             AS ID,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END)                              AS PresentCount,
-       COUNT(CASE WHEN Attended = 0 THEN 1 END)                              AS AbsentCount,
-       COUNT(*)                                                              AS TotalParticipants,
+SELECT MeetingID                                                                           AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                                            AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                                            AS AbsentCount,
+       COUNT(*)                                                                            AS TotalParticipants,
        CAST(COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS decimal(10, 2)) AS AttendancePercentage
 FROM CourseMeetingAttendance
 GROUP BY MeetingID
@@ -140,10 +140,10 @@ GO;
 
 -- View: INTERNSHIP_ATTENDANCE_REPORT
 CREATE VIEW INTERNSHIP_ATTENDANCE_REPORT AS
-SELECT InternshipID                                                          AS ID,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END)                              AS PresentCount,
-       COUNT(CASE WHEN Attended = 0 THEN 1 END)                              AS AbsentCount,
-       COUNT(*)                                                              AS TotalParticipants,
+SELECT InternshipID                                                                        AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                                            AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                                            AS AbsentCount,
+       COUNT(*)                                                                            AS TotalParticipants,
        CAST(COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS decimal(10, 2)) AS AttendancePercentage
 FROM InternshipAttendance
 GROUP BY InternshipID
@@ -163,21 +163,43 @@ GO;
 
 --View: WEBINAR_TIMETABLE
 CREATE VIEW WEBINAR_TIMETABLE AS
-SELECT Date, Duration, Title
+SELECT Date, Duration, Name
 FROM Webinars
 GO;
 
 --View: COURSE_TIMETABLE
 CREATE VIEW COURSE_TIMETABLE AS
-SELECT cm.Date, cm.Duration, cm.Title AS MeetingTitle, cmod.Title AS ModuleTitle, c.Title AS CourseTile
+SELECT IIF(cm.MeetingID IN (SELECT MeetingID
+                            FROM StationaryCourseMeetings),
+           'stationary',
+           IIF(cm.MeetingID IN (SELECT MeetingID
+                                FROM OnlineSynchronousCourseMeetings),
+               'synchronous', 'asynchronous')) AS Type,
+       cm.Name                                 AS MeetingName,
+       cmod.Name                               AS ModuleName,
+       c.Name                                  AS CourseName,
+       cm.Date,
+       cm.Duration
 FROM CourseMeetings AS cm
-         JOIN CourseModules AS cmod ON cm.ModuleID = cmod.ModuleID
-         JOIN Courses AS c ON cmod.CourseID = c.CourseID
+         JOIN CourseModules AS cmod
+             ON cm.ModuleID = cmod.ModuleID
+         JOIN Courses AS c
+             ON cmod.CourseID = c.CourseID
 GO;
 
 --View: STUDY_TIMETABLE
 CREATE VIEW STUDY_TIMETABLE AS
-SELECT c.Date, c.Duration, sub.Title AS SubjectTitle, s.Title AS StudiesTitle
+SELECT IIF(c.ClassID IN (SELECT ClassID
+                         FROM StationaryClasses),
+           'stationary',
+           IIF(c.ClassID IN (SELECT ClassID
+                             FROM OnlineSynchronousClasses),
+               'synchronous', 'asynchronous')) AS Type,
+       c.Name                                  AS ClassName,
+       sub.Name                                AS SubjectName,
+       s.Name                                  AS StudiesName,
+       c.Date,
+       c.Duration
 FROM Classes AS c
          JOIN Subjects AS sub ON c.SubjectID = sub.SubjectID
          JOIN Studies AS s ON c.StudyID = s.StudyID
@@ -187,17 +209,17 @@ GO;
 CREATE VIEW ALL_EVENTS_TIMETABLE AS
 SELECT Date      AS Date,
        Duration  AS Duration,
-       Title     AS Title,
-       NULL      AS SuperiorTitle1,
-       NULL      AS SuperiorTitle2,
+       Name      AS Name,
+       NULL      AS SuperiorName1,
+       NULL      AS SuperiorName2,
        'Webinar' AS Type
 FROM Webinars
 UNION
 SELECT cm.Date          AS Date,
        cm.Duration      AS Duration,
-       cm.Title         AS Title,
-       cmod.Title       AS SuperiorTile1,
-       c.Title          AS SuperiorTitle2,
+       cm.Name          AS Name,
+       cmod.Name        AS SuperiorName1,
+       c.Name           AS SuperiorName2,
        'Course meeting' AS Type
 FROM CourseMeetings AS cm
          JOIN CourseModules AS cmod
@@ -207,9 +229,9 @@ FROM CourseMeetings AS cm
 UNION
 SELECT c.Date     AS Date,
        c.Duration AS Duration,
-       c.Title    AS Title,
-       sub.Title  AS SuperiorTile1,
-       s.Title    AS SuperiorTitle2,
+       c.Name     AS Name,
+       sub.Name   AS SuperiorName1,
+       s.Name     AS SuperiorName2,
        'Class'    AS Type
 FROM Classes AS c
          JOIN Subjects AS sub
@@ -349,9 +371,13 @@ GO;
 -- View: USER_MAILING_ADDRESSES
 CREATE VIEW USER_MAILING_ADDRESSES
 AS
-SELECT FirstName + ' ' + LastName                                 AS FullName,
-       Address + ', ' + PostalCode + ', ' + City + ', ' + Country AS MailingAddress
-FROM Users
+SELECT u.FirstName + ' ' + u.LastName                                               AS FullName,
+       u.Address + ', ' + u.PostalCode + ', ' + ci.CityName + ', ' + co.CountryName AS MailingAddress
+FROM Users u
+         INNER JOIN Cities ci
+                    ON u.CityID = ci.CityID
+         INNER JOIN Countries co
+                    ON ci.CountryID = co.CountryID
 WHERE UserID IN (SELECT sl.UserID
                  FROM StudyGrades sl);
 GO;
@@ -360,7 +386,7 @@ GO;
 CREATE VIEW STUDENTS_INTERNSHIPS
 AS
 SELECT u.FirstName + ' ' + u.LastName AS StudentName,
-       i.Title         AS InternshipName
+       i.Name                         AS InternshipName
 FROM Users u
          INNER JOIN InternshipAttendance ia
                     ON u.UserID = ia.UserID
@@ -372,7 +398,7 @@ GO;
 -- View: USERS_SIGNED_UP_TO_COURSES
 CREATE VIEW USERS_SIGNED_UP_TO_COURSES
 AS
-SELECT Title                                AS CourseName,
+SELECT Name                                 AS CourseName,
        dbo.GetMaxCourseCapacity(CourseID) -
        dbo.HowManyCourseVacancies(CourseID) AS UsersSignedUp
 FROM Courses;
@@ -381,12 +407,12 @@ GO;
 -- View: USERS_SIGNED_UP_TO_STUDIES
 CREATE VIEW USERS_SIGNED_UP_TO_STUDIES
 AS
-SELECT Title    AS StudyName,
+SELECT Name     AS StudyName,
        COUNT(*) AS StudentsSignedUp
 FROM Users u
          INNER JOIN StudentLists sl
                     ON u.UserID = sl.UserID
          INNER JOIN Studies s
                     ON sl.StudyID = s.StudyID
-GROUP BY sl.StudyID, s.Title;
+GROUP BY sl.StudyID, s.Name;
 GO;

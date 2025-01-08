@@ -1,28 +1,34 @@
 -- PEOPLE
 
--- Table: CountriesCities
-CREATE TABLE CountriesCities
+-- Table: Countries
+CREATE TABLE Countries
 (
-    CCID    int          NOT NULL IDENTITY,
-    City    nvarchar(50) NOT NULL,
-    Country nvarchar(50) NOT NULL,
-    CONSTRAINT unique_combinations UNIQUE (City, Country),
-    CONSTRAINT CountriesCities_pk PRIMARY KEY (CCID)
+    CountryID   int          NOT NULL IDENTITY,
+    CountryName nvarchar(50) NOT NULL,
+    CONSTRAINT unique_country_names UNIQUE (CountryName),
+    CONSTRAINT Countries_pk PRIMARY KEY (CountryID)
+);
+
+-- Table: Cities
+CREATE TABLE Cities
+(
+    CityID    int           NOT NULL IDENTITY,
+    CountryID int           NOT NULL,
+    CityName  nvarchar(100) NOT NULL,
+    CONSTRAINT Cities_pk PRIMARY KEY (CityID)
 );
 
 -- Table: Users
 CREATE TABLE Users
 (
     UserID       int          NOT NULL IDENTITY,
+    CityID       int          NOT NULL,
     Email        nvarchar(64) NOT NULL CHECK (Email LIKE '_%@__%.__%'),
     Password     nvarchar(64) NOT NULL,
     FirstName    nvarchar(30) NOT NULL,
     LastName     nvarchar(30) NOT NULL,
     Address      nvarchar(64) NOT NULL,
     PostalCode   nvarchar(10) NOT NULL,
-    City         nvarchar(50) NOT NULL,
-    Region       nvarchar(50) NOT NULL,
-    Country      nvarchar(50) NOT NULL,
     RegisterDate datetime     NOT NULL CHECK (RegisterDate >= '01-01-1900'),
     Phone        nvarchar(15) NULL,
     CONSTRAINT Users_unique_email UNIQUE (Email),
@@ -88,7 +94,7 @@ CREATE TABLE Webinars
     TeacherID    int           NOT NULL,
     LanguageID   int           NULL,
     TranslatorID int           NULL,
-    Title        nvarchar(100) NOT NULL,
+    Name         nvarchar(100) NOT NULL,
     Description  nvarchar(max) NULL,
     Date         datetime      NOT NULL CHECK (Date >= '01-01-1900'),
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
@@ -108,7 +114,7 @@ CREATE TABLE Courses
 (
     CourseID      int           NOT NULL IDENTITY,
     CoordinatorID int           NOT NULL,
-    Title         nvarchar(100) NOT NULL,
+    Name          nvarchar(100) NOT NULL,
     Description   nvarchar(max) NULL,
     Price         money         NOT NULL CHECK (Price >= 0),
     BeginDate     datetime      NOT NULL CHECK (BeginDate >= '01-01-1900'),
@@ -122,7 +128,7 @@ CREATE TABLE CourseModules
 (
     ModuleID    int           NOT NULL IDENTITY,
     CourseID    int           NOT NULL,
-    Title       nvarchar(100) NOT NULL,
+    Name        nvarchar(100) NOT NULL,
     Description nvarchar(max) NULL,
     ModuleType  nvarchar(12)  NOT NULL CHECK (ModuleType IN ('stationary', 'synchronous', 'asynchronous', 'hybrid')),
     CONSTRAINT CourseModules_pk PRIMARY KEY (ModuleID)
@@ -136,9 +142,9 @@ CREATE TABLE CourseMeetings
     TeacherID    int           NOT NULL,
     LanguageID   int           NULL,
     TranslatorID int           NULL,
-    Title        nvarchar(100) NOT NULL,
-    Description  nvarchar(max) NOT NULL,
-    Date         datetime      NOT NULL CHECK (Date >= '01-01-1900'),
+    Name         nvarchar(100) NOT NULL,
+    Description  nvarchar(max) NULL,
+    Date         datetime      NULL CHECK (Date IS NULL OR Date >= '01-01-1900'),
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
     CONSTRAINT CourseMeetings_pk PRIMARY KEY (MeetingID)
 );
@@ -189,7 +195,7 @@ CREATE TABLE Studies
 (
     StudyID       int           NOT NULL IDENTITY,
     CoordinatorID int           NOT NULL,
-    Title         nvarchar(100) NOT NULL,
+    Name          nvarchar(100) NOT NULL,
     Description   nvarchar(max) NULL,
     TuitionFee    money         NOT NULL CHECK (TuitionFee >= 0),
     CONSTRAINT Studies_pk PRIMARY KEY (StudyID)
@@ -217,7 +223,7 @@ CREATE TABLE Subjects
 (
     SubjectID     int           NOT NULL IDENTITY,
     CoordinatorID int           NOT NULL,
-    Title         nvarchar(100) NOT NULL,
+    Name          nvarchar(100) NOT NULL,
     Description   nvarchar(max) NULL,
     CONSTRAINT Subjects_pk PRIMARY KEY (SubjectID)
 );
@@ -247,7 +253,7 @@ CREATE TABLE Internships
     InternshipID int           NOT NULL IDENTITY,
     StudyID      int           NOT NULL,
     TeacherID    int           NOT NULL,
-    Title        nvarchar(100) NOT NULL,
+    Name         nvarchar(100) NOT NULL,
     StartDate    datetime      NOT NULL CHECK (StartDate >= '01-01-1900'),
     CONSTRAINT Internships_pk PRIMARY KEY (InternshipID)
 );
@@ -276,7 +282,7 @@ CREATE TABLE Classes
     TeacherID    int           NOT NULL,
     LanguageID   int           NULL,
     TranslatorID int           NULL,
-    Title        nvarchar(100) NOT NULL,
+    Name         nvarchar(100) NOT NULL,
     Description  nvarchar(max) NULL,
     Date         datetime      NOT NULL CHECK (Date >= '01-01-1900'),
     Duration     time          NOT NULL DEFAULT '01:30:00' CHECK (Duration > '00:00:00'),
@@ -297,7 +303,7 @@ CREATE TABLE StudyMeetings
 (
     MeetingID int           NOT NULL IDENTITY,
     StudyID   int           NOT NULL,
-    Title     nvarchar(100) NOT NULL,
+    Name      nvarchar(100) NOT NULL,
     BeginDate datetime      NOT NULL CHECK (BeginDate >= '01-01-1900'),
     EndDate   datetime      NOT NULL CHECK (EndDate >= '01-01-1900'),
     Price     money         NOT NULL CHECK (Price >= 0),
