@@ -118,33 +118,33 @@ GO;
 
 -- View: CLASS_ATTENDANCE_REPORT
 CREATE VIEW CLASS_ATTENDANCE_REPORT AS
-SELECT ClassID                                                     AS ID,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
-       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
-       COUNT(*)                                                    AS TotalParticipants,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+SELECT ClassID                                                                             AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                                            AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                                            AS AbsentCount,
+       COUNT(*)                                                                            AS TotalParticipants,
+       CAST(COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS decimal(10, 2)) AS AttendancePercentage
 FROM ClassAttendance
 GROUP BY ClassID
 GO;
 
 -- View: COURSE_MEETING_ATTENDANCE_REPORT
 CREATE VIEW COURSE_MEETING_ATTENDANCE_REPORT AS
-SELECT MeetingID                                                   AS ID,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
-       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
-       COUNT(*)                                                    AS TotalParticipants,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+SELECT MeetingID                                                             AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                              AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                              AS AbsentCount,
+       COUNT(*)                                                              AS TotalParticipants,
+       CAST(COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS decimal(10, 2)) AS AttendancePercentage
 FROM CourseMeetingAttendance
 GROUP BY MeetingID
 GO;
 
 -- View: INTERNSHIP_ATTENDANCE_REPORT
 CREATE VIEW INTERNSHIP_ATTENDANCE_REPORT AS
-SELECT InternshipID                                                AS ID,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END)                    AS PresentCount,
-       COUNT(CASE WHEN Attended = 0 THEN 1 END)                    AS AbsentCount,
-       COUNT(*)                                                    AS TotalParticipants,
-       COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS AttendancePercentage
+SELECT InternshipID                                                          AS ID,
+       COUNT(CASE WHEN Attended = 1 THEN 1 END)                              AS PresentCount,
+       COUNT(CASE WHEN Attended = 0 THEN 1 END)                              AS AbsentCount,
+       COUNT(*)                                                              AS TotalParticipants,
+       CAST(COUNT(CASE WHEN Attended = 1 THEN 1 END) * 100.0 / COUNT(*) AS decimal(10, 2)) AS AttendancePercentage
 FROM InternshipAttendance
 GROUP BY InternshipID
 GO;
