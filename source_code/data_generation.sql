@@ -3332,17 +3332,17 @@ VALUES (1, 1),
        (10, 199),
        (10, 200);
 
-INSERT INTO Internships (StudyID, TeacherID, StartDate)
-VALUES (1, 38, '2024-06-10 01:43:19'),
-       (2, 32, '2024-06-18 12:24:37'),
-       (3, 38, '2025-06-15 01:25:23'),
-       (4, 45, '2024-06-29 20:24:38'),
-       (5, 56, '2025-07-15 23:11:47'),
-       (6, 58, '2025-03-15 13:25:22'),
-       (7, 31, '2025-07-09 12:32:45'),
-       (8, 22, '2025-08-25 20:17:10'),
-       (9, 17, '2025-06-10 10:12:10'),
-       (10, 40, '2025-06-22 02:29:29');
+INSERT INTO Internships (StudyID, TeacherID, Title, StartDate)
+VALUES (1, 38, 'Software Development Internship Program', '2024-06-10 01:43:19'),
+       (2, 32, 'Data Science Career Pathway', '2024-06-18 12:24:37'),
+       (3, 38, 'Cybersecurity Practical Training', '2025-06-15 01:25:23'),
+       (4, 45, 'AI and Machine Learning Internship', '2024-06-29 20:24:38'),
+       (5, 56, 'Web Development Professional Track', '2025-07-15 23:11:47'),
+       (6, 58, 'Cloud Computing Hands-On Experience', '2025-03-15 13:25:22'),
+       (7, 31, 'Mobile App Development Practicum', '2025-07-09 12:32:45'),
+       (8, 22, 'IT Infrastructure and Networking Internship', '2025-08-25 20:17:10'),
+       (9, 17, 'UX/UI Design Professional Experience', '2025-06-10 10:12:10'),
+       (10, 40, 'DevOps Career Accelerator', '2025-06-22 02:29:29');
 
 INSERT INTO InternshipAttendance (InternshipID, UserID, StudyID, Attended)
 VALUES (1, 1, 1, 0),

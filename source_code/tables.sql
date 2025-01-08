@@ -244,10 +244,11 @@ CREATE TABLE SubjectGrades
 -- Table: Internships
 CREATE TABLE Internships
 (
-    InternshipID int      NOT NULL IDENTITY,
-    StudyID      int      NOT NULL,
-    TeacherID    int      NOT NULL,
-    StartDate    datetime NOT NULL CHECK (StartDate >= '01-01-1900'),
+    InternshipID int           NOT NULL IDENTITY,
+    StudyID      int           NOT NULL,
+    TeacherID    int           NOT NULL,
+    Title        nvarchar(100) NOT NULL,
+    StartDate    datetime      NOT NULL CHECK (StartDate >= '01-01-1900'),
     CONSTRAINT Internships_pk PRIMARY KEY (InternshipID)
 );
 

@@ -185,17 +185,32 @@ GO;
 
 --View: ALL_EVENTS_TIMETABLE
 CREATE VIEW ALL_EVENTS_TIMETABLE AS
-SELECT Date AS Date, Duration AS Duration, Title AS Title, NULL AS SuperiorTitle
+SELECT Date      AS Date,
+       Duration  AS Duration,
+       Title     AS Title,
+       NULL      AS SuperiorTitle1,
+       NULL      AS SuperiorTitle2,
+       'Webinar' AS Type
 FROM Webinars
 UNION
-SELECT cm.Date AS Date, cm.Duration AS Duration, cm.Title AS Title, c.Title AS SuperiorTile
+SELECT cm.Date          AS Date,
+       cm.Duration      AS Duration,
+       cm.Title         AS Title,
+       cmod.Title       AS SuperiorTile1,
+       c.Title          AS SuperiorTitle2,
+       'Course meeting' AS Type
 FROM CourseMeetings AS cm
          JOIN CourseModules AS cmod
               ON cm.ModuleID = cmod.ModuleID
          JOIN Courses AS c
               ON cmod.CourseID = c.CourseID
 UNION
-SELECT c.Date AS Date, c.Duration AS Duration, sub.Title AS Title, s.Title AS SuperiorTitle
+SELECT c.Date     AS Date,
+       c.Duration AS Duration,
+       c.Title    AS Title,
+       sub.Title  AS SuperiorTile1,
+       s.Title    AS SuperiorTitle2,
+       'Class'    AS Type
 FROM Classes AS c
          JOIN Subjects AS sub
               ON c.SubjectID = sub.SubjectID
@@ -329,4 +344,49 @@ WHERE EXISTS (SELECT w.WebinarID
                                         DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date),
                                         DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cl.Duration), cl.Date),
                                         DATEADD(MINUTE, DATEDIFF(MINUTE, '00:00', cms.Duration), cms.Date))))));
+GO;
+
+-- View: USER_MAILING_ADDRESSES
+CREATE VIEW USER_MAILING_ADDRESSES
+AS
+SELECT FirstName + ' ' + LastName                                 AS FullName,
+       Address + ', ' + PostalCode + ', ' + City + ', ' + Country AS MailingAddress
+FROM Users
+WHERE UserID IN (SELECT sl.UserID
+                 FROM StudyGrades sl);
+GO;
+
+-- View: STUDENTS_INTERNSHIPS
+CREATE VIEW STUDENTS_INTERNSHIPS
+AS
+SELECT u.FirstName + ' ' + u.LastName AS StudentName,
+       i.Title         AS InternshipName
+FROM Users u
+         INNER JOIN InternshipAttendance ia
+                    ON u.UserID = ia.UserID
+         INNER JOIN Internships i
+                    ON ia.InternshipID = i.InternshipID
+WHERE ia.Attended = 1;
+GO;
+
+-- View: USERS_SIGNED_UP_TO_COURSES
+CREATE VIEW USERS_SIGNED_UP_TO_COURSES
+AS
+SELECT Title                                AS CourseName,
+       dbo.GetMaxCourseCapacity(CourseID) -
+       dbo.HowManyCourseVacancies(CourseID) AS UsersSignedUp
+FROM Courses;
+GO;
+
+-- View: USERS_SIGNED_UP_TO_STUDIES
+CREATE VIEW USERS_SIGNED_UP_TO_STUDIES
+AS
+SELECT Title    AS StudyName,
+       COUNT(*) AS StudentsSignedUp
+FROM Users u
+         INNER JOIN StudentLists sl
+                    ON u.UserID = sl.UserID
+         INNER JOIN Studies s
+                    ON sl.StudyID = s.StudyID
+GROUP BY sl.StudyID, s.Title;
 GO;

@@ -88,6 +88,7 @@ GO
 
 CREATE PROCEDURE AddInternship @StudyID int,
                                @TeacherID int,
+    @Title nvarchar(100),
                                @StartDate datetime
 AS
 BEGIN
@@ -103,8 +104,8 @@ BEGIN
                      AND p.Name = 'Teacher')
         THROW 50000, 'No teacher found for given ID.', 4;
 
-    INSERT INTO Internships(StudyID, TeacherID, StartDate)
-    VALUES (@StudyID, @TeacherID, @StartDate)
+    INSERT INTO Internships(StudyID, TeacherID, Title, StartDate)
+    VALUES (@StudyID, @TeacherID, @Title, @StartDate)
 END
 
 GO
@@ -594,11 +595,56 @@ END;
 
 GO
 
+CREATE PROCEDURE ModifyEmployee
+    @p_EmployeeID INT,
+    @p_PositionName NVARCHAR(20),
+    @p_Phone NVARCHAR(15)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Employees as e
+                   WHERE e.EmployeeID = @p_EmployeeID)
+        THROW 50027, 'No employee found for given ID.', 30;
+
+    DECLARE @v_PositionID INT;
+    SELECT @v_PositionID = PositionID
+    FROM Positions
+    WHERE name = @p_PositionName;
+
+    UPDATE Employees
+    SET PositionID=@v_PositionID, Phone = @p_Phone
+    WHERE EmployeeID = @p_EmployeeID
+END;
+
+GO
+
+CREATE PROCEDURE AddUser
+    @p_FirstName NVARCHAR(30),
+    @p_LastName NVARCHAR(30),
+    @p_Email NVARCHAR(64),
+    @p_Password NVARCHAR(64),
+    @p_Phone NVARCHAR(15),
+    @p_Address NVARCHAR(64),
+    @p_PostalCode NVARCHAR(6),
+    @p_City NVARCHAR(50),
+    @p_Region NVARCHAR(50),
+    @p_Country NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO Users (Email, Password, FirstName, LastName, Address, PostalCode, City, Region, Country, RegisterDate, Phone)
+    VALUES (@p_Email, @p_Password, @p_FirstName, @p_LastName, @p_Address, @p_PostalCode, @p_City, @p_Region, @p_Country, GETDATE(), @p_Phone);
+END;
+
+GO
+
+-- ModifyUser
+
 
 -- ORDERS
 
 CREATE PROCEDURE AddOrder @p_UserID INT,
-                          @p_OrderDate DATETIME = GETDATE(),
+                          @p_OrderDate DATETIME,
                           @p_PaymentURL NVARCHAR(200)
 AS
 BEGIN
@@ -614,3 +660,11 @@ BEGIN
 END;
 
 GO
+
+-- ModifyOrder
+
+-- AddOrderDetails
+
+-- ModifyOrderDetails
+
+-- RegisterForOneStudyMeeting

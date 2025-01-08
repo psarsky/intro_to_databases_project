@@ -342,3 +342,31 @@ CREATE FUNCTION CourseMeetingGenerateAttendanceList(@MeetingID INT)
                              ON cm.MeetingID = cma.MeetingID
                         JOIN Users AS u ON cma.UserID = u.UserID
                WHERE cm.MeetingID = @MeetingID);
+
+GO
+
+CREATE FUNCTION GenerateStudySyllabus(@StudyID int)
+    RETURNS TABLE
+        AS
+        RETURN(SELECT s.Title       AS SubjectName,
+                      s.Description AS SubjectDescription,
+                      sd.SemesterNo AS Semester
+               FROM SubjectDetails sd
+                        INNER JOIN Subjects s
+                                   ON sd.SubjectID = s.SubjectID
+               WHERE sd.StudyID = @StudyID);
+
+GO
+
+CREATE FUNCTION GenerateDiploma(@UserID int, @StudyID int)
+    RETURNS TABLE
+        AS
+        Return(SELECT s.Title AS SubjectName,
+                      sg.Grade
+               FROM Users u
+                        INNER JOIN SubjectGrades sg
+                                   ON u.UserID = sg.UserID
+                        INNER JOIN Subjects s
+                                   ON s.SubjectID = sg.SubjectID
+               WHERE u.UserID = @UserID
+                 AND sg.StudyID = @StudyID);
