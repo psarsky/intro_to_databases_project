@@ -223,14 +223,16 @@ BEGIN
                      AND sd.SubjectID = @SubjectID)
         THROW 50011, 'The given subject is not assigned to the given studies.', 8;
     IF @Type = 'stationary'
-        AND (@MeetingID IS NULL
-            OR NOT EXISTS (SELECT 1
-                           FROM StudyMeetings sm
-                           WHERE sm.MeetingID = @MeetingID))
-        THROW 50012, 'Invalid study meeting ID for stationary class.', 8;
+        BEGIN
+            IF (@MeetingID IS NULL
+                OR NOT EXISTS (SELECT 1
+                               FROM StudyMeetings sm
+                               WHERE sm.MeetingID = @MeetingID))
+                THROW 50012, 'Invalid study meeting ID for stationary class.', 8;
+        END
     ELSE
         IF @MeetingID IS NOT NULL
-            THROW 500013, 'Cannot assign an online class to a study meeting.', 8;
+            THROW 50013, 'Cannot assign an online class to a study meeting.', 8;
     IF NOT EXISTS (SELECT 1
                    FROM Employees e
                             INNER JOIN Positions p
