@@ -400,3 +400,81 @@ BEGIN
 
     RETURN @Result
 END
+
+GO
+
+CREATE FUNCTION CheckWebinarAccess(@UserID int, @WebinarID int)
+    RETURNS bit
+AS
+BEGIN
+    DECLARE @Result bit = 0
+
+    IF (SELECT DATEDIFF(DAYOFYEAR, w.Date, GETDATE())
+        FROM Webinars w
+        WHERE w.WebinarID = @WebinarID) BETWEEN 0 AND 30
+        AND @UserID IN (SELECT o.UserID
+                        FROM Webinars w
+                                 INNER JOIN WebinarOrders wo
+                                            ON w.WebinarID = wo.WebinarID
+                                 INNER JOIN Orders o
+                                            ON wo.OrderID = o.OrderID
+                        WHERE w.WebinarID = @WebinarID
+                          AND o.UserID = @UserID
+                          AND wo.PaymentDate IS NOT NULL)
+        SET @Result = 1
+
+    RETURN @Result
+END
+
+GO
+
+CREATE FUNCTION GenerateOrderInfo(@OrderID int)
+    RETURNS TABLE
+        AS
+        RETURN(SELECT o.OrderID      AS OrderID,
+                      o.UserID       AS UserID,
+                      'Webinar'      AS ProductType,
+                      wo.WebinarID   AS ProductID,
+                      wo.Price       AS Price,
+                      o.OrderDate    AS OrderDate,
+                      wo.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN WebinarOrders wo
+                                   ON o.OrderID = wo.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID          AS OrderID,
+                      o.UserID           AS UserID,
+                      'Course'           AS ProductType,
+                      co.CourseID        AS ProductID,
+                      co.FullPrice       AS Price,
+                      o.OrderDate        AS OrderDate,
+                      co.PaymentDateFull AS PaymentDate
+               FROM Orders o
+                        INNER JOIN CourseOrders co
+                                   ON o.OrderID = co.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID       AS OrderID,
+                      o.UserID        AS UserID,
+                      'Study meeting' AS ProductType,
+                      smo.MeetingID   AS ProductID,
+                      smo.Price       AS Price,
+                      o.OrderDate     AS OrderDate,
+                      smo.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN StudyMeetingOrders smo
+                                   ON o.OrderID = smo.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID      AS OrderID,
+                      o.UserID       AS UserID,
+                      'Studies'      AS ProductType,
+                      so.StudyID     AS ProductID,
+                      so.Price       AS Price,
+                      o.OrderDate    AS OrderDate,
+                      so.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN StudyOrders so
+                                   ON o.OrderID = so.OrderID
+               WHERE o.OrderID = @OrderID);

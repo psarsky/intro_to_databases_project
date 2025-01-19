@@ -964,6 +964,41 @@ END;
 
 GO
 
+CREATE PROCEDURE AddOrderWithDetails @p_UserID INT,
+                                     @p_OrderDate DATETIME,
+                                     @p_PaymentURL NVARCHAR(200),
+                                     @p_DetailType NVARCHAR(50),
+                                     @p_EntityID INT,
+                                     @p_Price MONEY = NULL,
+                                     @p_PaymentDate DATETIME = NULL,
+                                     @p_PaymentInAdvance MONEY = NULL,
+                                     @p_FullPrice MONEY = NULL,
+                                     @p_PaymentDateInAdvance DATETIME = NULL,
+                                     @p_PaymentDateFull DATETIME = NULL
+AS
+BEGIN
+
+    DECLARE @OrderID int
+
+    EXEC AddOrder @p_UserID, @p_OrderDate, @p_PaymentURL
+    SET @OrderID = (SELECT TOP 1 o.OrderID
+                    FROM Orders o
+                    ORDER BY o.OrderID DESC)
+
+    EXEC AddOrderDetails
+         @OrderID,
+         @p_DetailType,
+         @p_EntityID,
+         @p_Price,
+         @p_PaymentDate,
+         @p_PaymentInAdvance,
+         @p_FullPrice,
+         @p_PaymentDateInAdvance,
+         @p_PaymentDateFull
+END;
+
+GO
+
 CREATE PROCEDURE RegisterForOneStudyMeeting @OrderID INT,
                                             @MeetingID INT
 AS
