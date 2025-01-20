@@ -57,6 +57,9 @@ DELETE
 FROM Subjects
 WHERE SubjectID > 100
 DELETE
+FROM StudentLists
+WHERE StudyID > 10
+DELETE
 FROM Studies
 WHERE StudyID > 10
 
