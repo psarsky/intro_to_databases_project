@@ -478,3 +478,21 @@ CREATE FUNCTION GenerateOrderInfo(@OrderID int)
                         INNER JOIN StudyOrders so
                                    ON o.OrderID = so.OrderID
                WHERE o.OrderID = @OrderID);
+GO
+
+CREATE FUNCTION GetStudyMeetingPrice(@MeetingID int)
+    RETURNS money
+AS
+BEGIN
+    DECLARE @Price money = 0
+    IF EXISTS (SELECT *
+               FROM StudyMeetings
+               WHERE MeetingID = @MeetingID)
+        BEGIN
+            SET @Price = ( SELECT Price 
+							FROM StudyMeetings
+							WHERE MeetingID=@MeetingID)
+        END
+    RETURN @Price
+END
+
