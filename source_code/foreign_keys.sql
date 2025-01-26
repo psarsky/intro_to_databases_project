@@ -1,3 +1,10 @@
+-- foreign keys
+-- Reference: Cities_Countries (table: Cities)
+ALTER TABLE Cities
+    ADD CONSTRAINT Cities_Countries
+        FOREIGN KEY (CountryID)
+            REFERENCES Countries (CountryID);
+
 -- Reference: ClassAttendance_Classes (table: ClassAttendance)
 ALTER TABLE ClassAttendance
     ADD CONSTRAINT ClassAttendance_Classes
@@ -274,10 +281,11 @@ ALTER TABLE TranslatorLanguages
         FOREIGN KEY (LanguageID)
             REFERENCES Languages (LanguageID);
 
--- Reference: Users_CountriesCities (table: Users)
-ALTER TABLE Users ADD CONSTRAINT Users_CountriesCities
-    FOREIGN KEY (City,Country)
-        REFERENCES CountriesCities (City,Country);
+-- Reference: Users_Cities (table: Users)
+ALTER TABLE Users
+    ADD CONSTRAINT Users_Cities
+        FOREIGN KEY (CityID)
+            REFERENCES Cities (CityID);
 
 -- Reference: WebinarOrders_Orders (table: WebinarOrders)
 ALTER TABLE WebinarOrders

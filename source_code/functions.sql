@@ -248,11 +248,11 @@ GO
 CREATE FUNCTION GenerateStudentSchedule(@UserID INT)
     RETURNS TABLE
         AS
-        RETURN(SELECT c.Title    AS MeetingTitle,
+        RETURN(SELECT c.Name     AS MeetingName,
                       c.Date     AS Start,
                       c.Duration AS Duration,
-                      sub.Title  AS SubjectTitle,
-                      s.Title    AS StudiesTitle
+                      sub.Name   AS SubjectName,
+                      s.Name     AS StudiesName
                FROM Classes AS c
                         JOIN Subjects AS sub
                              ON sub.SubjectID = c.SubjectID
@@ -264,11 +264,11 @@ CREATE FUNCTION GenerateStudentSchedule(@UserID INT)
                              ON sl.StudyID = s.StudyID
                WHERE sl.UserID = @UserID
                UNION
-               SELECT cm.Title    AS MeetingTitle,
+               SELECT cm.Name     AS MeetingName,
                       cm.Date     AS Start,
                       cm.Duration AS Duration,
-                      c.Title     AS SubjectTitle,
-                      NULL        AS StudiesTitle
+                      c.Name      AS SubjectName,
+                      NULL        AS StudiesName
                FROM CourseMeetings AS cm
                         JOIN CourseModules AS cmod
                              ON cm.ModuleID = cmod.ModuleID
@@ -280,11 +280,11 @@ CREATE FUNCTION GenerateStudentSchedule(@UserID INT)
                              ON co.OrderID = o.OrderID
                WHERE o.UserID = @UserID
                UNION
-               SELECT w.Title    AS MeetingTitle,
+               SELECT w.Name     AS MeetingName,
                       w.Date     AS Start,
                       w.Duration AS Duration,
-                      NULL       AS SubjectTitle,
-                      NULL       AS StudiesTitle
+                      NULL       AS SubjectName,
+                      NULL       AS StudiesName
                FROM Webinars AS w
                         JOIN WebinarOrders AS wo
                              ON w.WebinarID = wo.WebinarID
@@ -297,7 +297,7 @@ GO
 CREATE FUNCTION GenerateCourseSchedule(@CourseID INT)
     RETURNS TABLE
         AS
-        RETURN(SELECT cm.Title, cm.Date, cm.Duration, c.Title AS CourseTitle, cmod.Title AS ModuleTitle
+        RETURN(SELECT cm.Name, cm.Date, cm.Duration, c.Name AS CourseName, cmod.Name AS ModuleName
                FROM CourseMeetings AS cm
                         JOIN CourseModules AS cmod
                              ON cm.ModuleID = cmod.ModuleID
@@ -310,7 +310,7 @@ GO
 CREATE FUNCTION GenerateStudySchedule(@StudyID INT)
     RETURNS TABLE
         AS
-        RETURN(SELECT c.Title, c.Date, c.Duration, s.Title AS StudyTitle, sub.Title AS SubjectTitle
+        RETURN(SELECT c.Name, c.Date, c.Duration, s.Name AS StudyName, sub.Name AS SubjectName
                FROM Classes AS c
                         JOIN Subjects AS sub
                              ON c.SubjectID = sub.SubjectID
@@ -348,7 +348,7 @@ GO
 CREATE FUNCTION GenerateStudySyllabus(@StudyID int)
     RETURNS TABLE
         AS
-        RETURN(SELECT s.Title       AS SubjectName,
+        RETURN(SELECT s.Name        AS SubjectName,
                       s.Description AS SubjectDescription,
                       sd.SemesterNo AS Semester
                FROM SubjectDetails sd
@@ -361,7 +361,7 @@ GO
 CREATE FUNCTION GenerateDiploma(@UserID int, @StudyID int)
     RETURNS TABLE
         AS
-        Return(SELECT s.Title AS SubjectName,
+        Return(SELECT s.Name AS SubjectName,
                       sg.Grade
                FROM Users u
                         INNER JOIN SubjectGrades sg
@@ -370,3 +370,111 @@ CREATE FUNCTION GenerateDiploma(@UserID int, @StudyID int)
                                    ON s.SubjectID = sg.SubjectID
                WHERE u.UserID = @UserID
                  AND sg.StudyID = @StudyID);
+
+GO
+
+CREATE FUNCTION UserPassedCourse(@UserID int, @CourseID int)
+    RETURNS bit
+AS
+BEGIN
+    DECLARE @Result bit = 0
+    DECLARE @MeetingCount int
+    DECLARE @MeetingsAttended int
+
+    SET @MeetingCount = (SELECT COUNT(*)
+                         FROM dbo.GenerateCourseSchedule(@CourseID))
+    SET @MeetingsAttended = (SELECT COUNT(*)
+                             FROM CourseMeetingAttendance cma
+                                      INNER JOIN CourseMeetings cm
+                                                 ON cma.MeetingID = cm.MeetingID
+                                      INNER JOIN CourseModules cmod
+                                                 ON cm.ModuleID = cmod.ModuleID
+                                      INNER JOIN Courses c
+                                                 ON cmod.CourseID = c.CourseID
+                             WHERE c.CourseID = @CourseID
+                               AND cma.UserID = @UserID
+                               AND cma.Attended = 1)
+
+    IF @MeetingsAttended / @MeetingCount > 0.8
+        SET @Result = 1
+
+    RETURN @Result
+END
+
+GO
+
+CREATE FUNCTION CheckWebinarAccess(@UserID int, @WebinarID int)
+    RETURNS bit
+AS
+BEGIN
+    DECLARE @Result bit = 0
+
+    IF (SELECT DATEDIFF(DAYOFYEAR, w.Date, GETDATE())
+        FROM Webinars w
+        WHERE w.WebinarID = @WebinarID) BETWEEN 0 AND 30
+        AND @UserID IN (SELECT o.UserID
+                        FROM Webinars w
+                                 INNER JOIN WebinarOrders wo
+                                            ON w.WebinarID = wo.WebinarID
+                                 INNER JOIN Orders o
+                                            ON wo.OrderID = o.OrderID
+                        WHERE w.WebinarID = @WebinarID
+                          AND o.UserID = @UserID
+                          AND wo.PaymentDate IS NOT NULL)
+        SET @Result = 1
+
+    RETURN @Result
+END
+
+GO
+
+CREATE FUNCTION GenerateOrderInfo(@OrderID int)
+    RETURNS TABLE
+        AS
+        RETURN(SELECT o.OrderID      AS OrderID,
+                      o.UserID       AS UserID,
+                      'Webinar'      AS ProductType,
+                      wo.WebinarID   AS ProductID,
+                      wo.Price       AS Price,
+                      o.OrderDate    AS OrderDate,
+                      wo.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN WebinarOrders wo
+                                   ON o.OrderID = wo.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID          AS OrderID,
+                      o.UserID           AS UserID,
+                      'Course'           AS ProductType,
+                      co.CourseID        AS ProductID,
+                      co.FullPrice       AS Price,
+                      o.OrderDate        AS OrderDate,
+                      co.PaymentDateFull AS PaymentDate
+               FROM Orders o
+                        INNER JOIN CourseOrders co
+                                   ON o.OrderID = co.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID       AS OrderID,
+                      o.UserID        AS UserID,
+                      'Study meeting' AS ProductType,
+                      smo.MeetingID   AS ProductID,
+                      smo.Price       AS Price,
+                      o.OrderDate     AS OrderDate,
+                      smo.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN StudyMeetingOrders smo
+                                   ON o.OrderID = smo.OrderID
+               WHERE o.OrderID = @OrderID
+               UNION
+               SELECT o.OrderID      AS OrderID,
+                      o.UserID       AS UserID,
+                      'Studies'      AS ProductType,
+                      so.StudyID     AS ProductID,
+                      so.Price       AS Price,
+                      o.OrderDate    AS OrderDate,
+                      so.PaymentDate AS PaymentDate
+               FROM Orders o
+                        INNER JOIN StudyOrders so
+                                   ON o.OrderID = so.OrderID
+               WHERE o.OrderID = @OrderID);
