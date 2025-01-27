@@ -5,7 +5,7 @@ EXEC AddUser
      'karolek2137@gmail.com',
      'eeeeeeee',
      '+48692137420',
-     'ul. jakas tam 6',
+     'ul. kremuwkowa 6',
      '92137'
 
 

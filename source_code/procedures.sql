@@ -572,7 +572,8 @@ END;
 GO
 
 CREATE PROCEDURE AssignStationaryCourseMeeting @MeetingID int,
-                                               @ReservationID int
+                                               @ReservationID int,
+                                               @Limit int
 AS
 BEGIN
     IF NOT EXISTS (SELECT 1
@@ -584,8 +585,8 @@ BEGIN
                    WHERE r.ReservationID = @ReservationID)
         THROW 50013, 'No reservation found for given ID.', 9;
 
-    INSERT INTO StationaryCourseMeetings(MeetingID, ReservationID)
-    VALUES (@MeetingID, @ReservationID)
+    INSERT INTO StationaryCourseMeetings(MeetingID, ReservationID, Limit)
+    VALUES (@MeetingID, @ReservationID, @Limit)
 END
 
 GO
@@ -631,6 +632,7 @@ CREATE PROCEDURE AddMeetingAndAssign @ModuleID int,
                                      @Duration time,
                                      @Type nvarchar(12),
                                      @ReservationID int,
+                                     @Limit int,
                                      @VideoLink nvarchar(100),
                                      @MeetingLink nvarchar(100)
 AS
@@ -676,7 +678,7 @@ BEGIN
                       FROM CourseMeetings c
                       ORDER BY c.MeetingID DESC)
     IF @Type = 'stationary'
-        EXEC AssignStationaryCourseMeeting @MeetingID, @ReservationID
+        EXEC AssignStationaryCourseMeeting @MeetingID, @ReservationID, @Limit
     IF @Type = 'asynchronous'
         EXEC AssignAsynchronousCourseMeeting @MeetingID, @VideoLink
     IF @Type = 'synchronous'
