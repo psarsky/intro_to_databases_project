@@ -14,6 +14,9 @@ BEGIN
                                          INNER JOIN StudentLists sl
                                                     ON i.StudyID = sl.UserID))
         THROW 50050, 'User with given ID is already assigned to the given studies', 20
+    IF NOT EXISTS (SELECT i.PaymentDate
+               FROM INSERTED i)
+        THROW 50051, 'User did not pay for studies', 20
     ELSE
         BEGIN
             DECLARE @StudentID int;
@@ -31,69 +34,58 @@ BEGIN
 END;
 GO
 
-CREATE TRIGGER check_order_limit_before_insert
-ON studymeetingorders
-FOR INSERT
-AS
+CREATE TRIGGER dbo.trg_CheckStudyMeetingLimitBeforeInsert
+    ON StudyMeetingOrders
+    FOR INSERT
+    AS
 BEGIN
     DECLARE @meeting_limit INT;
     DECLARE @current_orders INT;
     DECLARE @meetingid INT;
-    
+
     SELECT @meetingid = meetingid FROM inserted;
-    
+
     SELECT @meeting_limit = limit
-    FROM study_meetings
+    FROM studymeetings
     WHERE meetingid = @meetingid;
-    
+
     SELECT @current_orders = COUNT(*)
     FROM studymeetingorders
     WHERE meetingid = @meetingid;
-    
+
     IF @current_orders >= @meeting_limit
-    BEGIN
-        RAISERROR('Limit zamówieñ dla tego spotkania zosta³ przekroczony', 16, 1);
-        ROLLBACK TRANSACTION; 
-    END
+        BEGIN
+            RAISERROR ('Place limit exceeded', 16, 1);
+            ROLLBACK TRANSACTION;
+        END
 END;
 GO
 
-CREATE TRIGGER trg_AllowToSignUpOnCourseMeeting
+CREATE TRIGGER dbo.trg_CheckCourseLimitBeforeInsert
     ON CourseOrders
-    INSTEAD OF INSERT
+    FOR INSERT
     AS
-	BEGIN
-		IF EXISTS (SELECT OrderID FROM Orders WHERE OrderID = (SELECT OrderID FROM inserted))
-			BEGIN
-				IF ((SELECT TOP 1 scm.Limit-(SELECT COUNT(*)
-											FROM CourseOrders as co
-											WHERE cm.CourseID = co.CourseID)
-						FROM StationaryCourseMeetings as scm
-						JOIN CourseMeetings as cmeet on cmeet.MeetingID=scm.MeetingID
-						JOIN CourseModules as cm on cm.ModuleID = cmeet.ModuleID
-						WHERE cm.CourseID=5
-						ORDER BY 1)>0)
-					BEGIN
-						DECLARE @OrderID int
-						SET @OrderID = (SELECT OrderID FROM inserted)
-						DECLARE @DetailType nvarchar(50)
-						SET @DetailType = 'Course'
-						DECLARE @CourseID int
-						SET @CourseID = (SELECT CourseID FROM inserted)
-						DECLARE @PaymentInAdvance money
-						SET @PaymentInAdvance = (SELECT PaymentInAdvance FROM inserted)
-						DECLARE @FullPrice money
-						SET @FullPrice = (SELECT FullPrice FROM inserted)
-						DECLARE @PaymentDateInAdvance datetime
-						SET @PaymentDateInAdvance = (SELECT PaymentDateInAdvance FROM inserted)
-						DECLARE @PaymentDateFull datetime
-						SET @PaymentDateFull = (SELECT PaymentDateFull FROM inserted)
+BEGIN
+    DECLARE @course_limit INT;
+    DECLARE @current_orders INT;
+    DECLARE @meetingid INT;
 
-						EXEC AddOrderDetails @OrderID, @DetailType, @CourseID, NULL, NULL, @PaymentInAdvance, @FullPrice, @PaymentDateInAdvance, @PaymentDateFull 
-					END
-				ELSE
-					THROW 50031, 'Course is full. You can`t sign up to it.', 40
-			END
-		ELSE
-			THROW 50020, 'No course found for given ID.', 40;
-	END;
+    SELECT @meetingid = courseid FROM inserted;
+
+    SELECT @course_limit = limit
+    FROM CourseMeetings cm
+             INNER JOIN StationaryCourseMeetings scm
+                 ON cm.MeetingID = scm.MeetingID
+    WHERE cm.meetingid = @meetingid;
+
+    SELECT @current_orders = COUNT(*)
+    FROM studymeetingorders
+    WHERE meetingid = @meetingid;
+
+    IF @current_orders >= @course_limit
+        BEGIN
+            RAISERROR ('Place limit exceeded', 16, 1);
+            ROLLBACK TRANSACTION;
+        END
+END;
+GO
