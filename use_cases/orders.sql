@@ -13,6 +13,7 @@ SELECT dbo.GetOrderValue(74)
 
 -- RESET
 
+DELETE FROM StudentLists WHERE UserID > 200;
 DELETE FROM WebinarOrders WHERE OrderID > 73;
 DELETE FROM CourseOrders WHERE OrderID > 73;
 DELETE FROM StudyOrders WHERE OrderID > 73;
